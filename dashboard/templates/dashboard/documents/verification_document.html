@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="fr">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Vérification d’un document scolaire</title>
+<style>body{font-family:system-ui,sans-serif;background:#f1f5f9;color:#17263a;margin:0;padding:32px}main{max-width:620px;margin:auto;background:white;padding:32px;border-radius:12px;box-shadow:0 8px 30px #14233a15}h1{font-size:1.5rem}.valid{color:#087443}.invalid{color:#b42318}dt{font-weight:700;margin-top:14px}dd{margin:4px 0}</style></head>
+<body><main><h1>Vérification du document</h1>
+<p class="{% if valide %}valid{% else %}invalid{% endif %}"><strong>{% if valide %}Document valide{% else %}Document annulé{% endif %}</strong></p>
+<dl>
+<dt>Type</dt><dd>{{ document.get_type_document_display }}</dd>
+<dt>Établissement</dt><dd>{{ document.ecole.nom_etablissement }}</dd>
+<dt>Année scolaire</dt><dd>{{ document.annee_scolaire.annee }}</dd>
+<dt>Numéro</dt><dd>{{ document.numero_document }}</dd>
+<dt>Date d’émission</dt><dd>{{ document.date_emission|date:"d/m/Y" }}</dd>
+</dl></main></body></html>

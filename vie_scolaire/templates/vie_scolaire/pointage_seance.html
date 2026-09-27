@@ -1,0 +1,65 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Appel par séance{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between gap-3 mb-3">
+  <div>
+    <h1 class="h3 mb-1">Appel · {{ seance.classe.nom_classe }}</h1>
+    <p class="text-muted mb-0">{{ seance.programme.matiere.nom }} · {{ seance.date|date:"d/m/Y" }} · {{ seance.heure_debut|time:"H:i" }}–{{ seance.heure_fin|time:"H:i" }} · {{ seance.enseignant }}</p>
+  </div>
+  <a href="{% url 'vie_scolaire:liste_seances' %}" class="btn btn-outline-secondary align-self-start">Toutes les séances</a>
+</div>
+<p class="alert alert-info">L’appel est propre à cette séance. Une ligne « Non pointé » ne crée aucun pointage. Une justification validée ne transforme pas une absence en présence.</p>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="card p-3"><span class="text-muted">Présents</span><strong class="h3 mb-0">{{ presents }}</strong></div></div>
+  <div class="col-6 col-lg-3"><div class="card p-3"><span class="text-muted">Absents</span><strong class="h3 mb-0">{{ absents }}</strong></div></div>
+  <div class="col-6 col-lg-3"><div class="card p-3"><span class="text-muted">Retards</span><strong class="h3 mb-0">{{ retards }}</strong></div></div>
+  <div class="col-6 col-lg-3"><div class="card p-3"><span class="text-muted">Non pointés</span><strong class="h3 mb-0">{{ non_pointes }}</strong></div></div>
+</div>
+<form method="post">
+  {% csrf_token %}
+  {{ formset.management_form }}
+  {% if formset.non_form_errors %}<div class="alert alert-danger">{{ formset.non_form_errors }}</div>{% endif %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead><tr><th>Élève</th><th>Pointage</th><th>Minutes de retard</th><th>Justification</th></tr></thead>
+      <tbody>
+        {% for form in formset %}
+          <tr class="pointage-row">
+            <td><strong>{{ form.initial.eleve.prenom }} {{ form.initial.eleve.nom }}</strong>{{ form.inscription }}{{ form.inscription.errors }}</td>
+            <td>{{ form.statut }}{{ form.statut.errors }}</td>
+            <td>{{ form.minutes_retard }}{{ form.minutes_retard.errors }}</td>
+            <td>
+              {% if form.initial.justification %}
+                {{ form.initial.justification.get_etat_display }}
+                {% if peut_decider and form.initial.justification.etat == 'en_attente' %}<br><a href="{% url 'vie_scolaire:decider_justification' form.initial.justification.pk %}">Décider</a>{% endif %}
+                {% if form.initial.justification.etat == 'en_attente' %}<br><a href="{% url 'vie_scolaire:justifier_pointage' form.initial.pointage_id %}">Modifier le motif</a>{% endif %}
+              {% elif form.initial.pointage_id %}
+                {% if form.initial.statut == 'absent' or form.initial.statut == 'retard' %}<a href="{% url 'vie_scolaire:justifier_pointage' form.initial.pointage_id %}">Ajouter un motif</a>{% else %}—{% endif %}
+              {% else %}Enregistrez le pointage d’abord.{% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="text-center text-muted py-4">Aucune inscription à cette date pour la classe.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <button type="submit" class="btn btn-primary" {% if not formset.forms %}disabled{% endif %}>Enregistrer les pointages</button>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.pointage-row').forEach(row => {
+    const statut = row.querySelector('select[name$="-statut"]');
+    const minutes = row.querySelector('input[name$="-minutes_retard"]');
+    const update = (clear) => {
+      minutes.disabled = statut.value !== 'retard';
+      if (minutes.disabled && clear) minutes.value = '';
+    };
+    statut.addEventListener('change', () => update(true));
+    update(false);
+  });
+});
+</script>
+{% endblock %}

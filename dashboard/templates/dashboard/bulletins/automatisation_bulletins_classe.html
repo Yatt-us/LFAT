@@ -1,0 +1,263 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Automatisation des Bulletins - {{ classe.nom_classe }} - {{ periode_label }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <!-- En-tête -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'liste_classes' %}">Classes</a></li>
+                    <li class="breadcrumb-item active">{{ classe.nom_classe }}</li>
+                </ol>
+            </nav>
+            <h2 class="h3 mb-0 text-dark fw-bold">
+                <i class="fas fa-file-invoice text-primary me-2"></i>Automatisation des Bulletins : {{ classe.nom_classe }}
+            </h2>
+            <p class="text-muted mb-0 small">Année scolaire : {{ classe.annee_scolaire.annee }} | Niveau : {{ classe.get_niveau_display }}</p>
+        </div>
+
+        <!-- Sélecteur de période -->
+        <div class="d-flex align-items-center gap-2">
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-calendar-alt me-1"></i> Période : <strong>{{ periode_label }}</strong>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    {% for p_val, p_text in periodes_disponibles %}
+                        <li>
+                            <a class="dropdown-item {% if p_val == periode %}active fw-bold{% endif %}" href="{% url 'automatiser_bulletins_classe' classe.pk p_val %}">
+                                {{ p_text }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item {% if periode == 'Annuel' %}active fw-bold{% endif %}" href="{% url 'automatiser_bulletins_classe' classe.pk 'Annuel' %}">
+                            <i class="fas fa-award me-1"></i> Bilan Annuel
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <a href="{% url 'liste_classes' %}" class="btn btn-outline-dark">
+                <i class="fas fa-arrow-left me-1"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <!-- Alertes messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Cartes d'indicateurs de la classe -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm bg-primary text-white h-100">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-white-50 small fw-bold text-uppercase">Effectif Classé</div>
+                            <div class="fs-3 fw-bold">{{ effectif }}</div>
+                        </div>
+                        <i class="fas fa-users fs-1 text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm bg-success text-white h-100">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-white-50 small fw-bold text-uppercase">Moyenne Classe</div>
+                            <div class="fs-3 fw-bold">{{ moyenne_classe|floatformat:2 }}/20</div>
+                        </div>
+                        <i class="fas fa-chart-line fs-1 text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm bg-info text-white h-100">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-white-50 small fw-bold text-uppercase">Fourchette (Min - Max)</div>
+                            <div class="fs-4 fw-bold">{{ moyenne_min|floatformat:2 }} - {{ moyenne_max|floatformat:2 }}</div>
+                        </div>
+                        <i class="fas fa-arrows-alt-v fs-1 text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm {% if nb_bulletins_generes == effectif and effectif > 0 %}bg-dark text-white{% else %}bg-warning text-dark{% endif %} h-100">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small fw-bold text-uppercase opacity-75">Bulletins Émis</div>
+                            <div class="fs-3 fw-bold">{{ nb_bulletins_generes }} / {{ effectif }}</div>
+                        </div>
+                        <i class="fas fa-stamp fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Erreurs ou élèves non notés -->
+    {% if erreurs %}
+        <div class="alert alert-warning border-0 shadow-sm mb-4">
+            <h5 class="alert-heading h6 fw-bold"><i class="fas fa-exclamation-triangle me-1"></i> Élèves avec notes incomplètes ({{ erreurs|length }})</h5>
+            <ul class="mb-0 small">
+                {% for err in erreurs %}
+                    <li><strong>{{ err.etudiant.nom }} {{ err.etudiant.prenom }}</strong> (Matricule: {{ err.etudiant.numero_matricule|default:"N/A" }}) : {{ err.erreur }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <!-- Panneau d'actions en masse -->
+    <div class="card shadow-sm border-0 mb-4 bg-light">
+        <div class="card-body p-3">
+            <div class="row align-items-center g-3">
+                <div class="col-lg-7">
+                    <form method="post" action="{% url 'automatiser_bulletins_classe' classe.pk periode %}" class="d-flex flex-wrap align-items-center gap-3">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm" {% if effectif == 0 %}disabled{% endif %}>
+                            <i class="fas fa-cogs me-1"></i> Générer et Archiver tous les Bulletins
+                        </button>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="notifier_parents" name="notifier_parents" value="1" checked>
+                            <label class="form-check-label fw-semibold" for="notifier_parents">
+                                Notifier les tuteurs par SMS / WhatsApp
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-lg-5 text-lg-end">
+                    <a href="{% url 'telecharger_bulletins_zip' classe.pk periode %}" class="btn btn-success fw-bold px-3 shadow-sm {% if nb_bulletins_generes == 0 %}disabled{% endif %}">
+                        <i class="fas fa-file-archive me-1"></i> Télécharger l'Archive ZIP ({{ nb_bulletins_generes }} PDF)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau du classement de la classe -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 border-0">
+            <h5 class="card-title mb-0 fw-bold text-dark">
+                <i class="fas fa-list-ol me-2 text-primary"></i>Classement et Décisions du Conseil : {{ periode_label }}
+            </h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="text-center" style="width: 70px;">Rang</th>
+                        <th>Matricule</th>
+                        <th>Nom & Prénom</th>
+                        <th class="text-center">Matières</th>
+                        <th class="text-center">Moyenne</th>
+                        <th class="text-center">Mention Officielle</th>
+                        {% if periode == 'Annuel' %}
+                            <th class="text-center">Décision Conseil</th>
+                        {% endif %}
+                        <th class="text-center">Statut Bulletin</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in eleves_data %}
+                        <tr>
+                            <td class="text-center fw-bold">
+                                {% if item.rang == 1 %}
+                                    <span class="badge bg-warning text-dark fs-6 px-2 py-1"><i class="fas fa-crown me-1"></i>1er</span>
+                                {% elif item.rang == 2 %}
+                                    <span class="badge bg-secondary fs-6 px-2 py-1">2e</span>
+                                {% elif item.rang == 3 %}
+                                    <span class="badge bg-bronze text-white fs-6 px-2 py-1" style="background-color: #cd7f32;">3e</span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark border">{{ item.rang }}e</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="badge bg-light text-secondary border font-monospace">{{ item.etudiant.numero_matricule|default:"N/A" }}</span></td>
+                            <td class="fw-bold">
+                                {{ item.etudiant.nom }} {{ item.etudiant.prenom }}
+                                {% if item.etudiant.genre == 'F' %}
+                                    <span class="badge bg-danger-subtle text-danger ms-1">F</span>
+                                {% else %}
+                                    <span class="badge bg-primary-subtle text-primary ms-1">M</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-info-subtle text-info fw-semibold">{{ item.nb_matieres }} mat.</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="fs-6 fw-bold {% if item.moyenne >= 10 %}text-success{% else %}text-danger{% endif %}">
+                                    {{ item.moyenne|floatformat:2 }}/20
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                {% if item.mention == 'tres_bien' %}
+                                    <span class="badge bg-success px-2 py-1"><i class="fas fa-star me-1"></i>Très Bien</span>
+                                {% elif item.mention == 'bien' %}
+                                    <span class="badge bg-success-subtle text-success border border-success px-2 py-1">Bien</span>
+                                {% elif item.mention == 'assez_bien' %}
+                                    <span class="badge bg-info-subtle text-info border border-info px-2 py-1">Assez Bien</span>
+                                {% elif item.mention == 'passable' %}
+                                    <span class="badge bg-warning-subtle text-warning border border-warning px-2 py-1">Passable</span>
+                                {% elif item.mention == 'avertissement' %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">Avertissement</span>
+                                {% elif item.mention == 'blame' %}
+                                    <span class="badge bg-danger px-2 py-1">Blâme</span>
+                                {% else %}
+                                    <span class="badge bg-light text-muted border">-</span>
+                                {% endif %}
+                            </td>
+                            {% if periode == 'Annuel' %}
+                                <td class="text-center">
+                                    {% if item.decision_recommandee == 'admis' %}
+                                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Admis en classe supérieure</span>
+                                    {% elif item.decision_recommandee == 'conseil' %}
+                                        <span class="badge bg-warning text-dark"><i class="fas fa-balance-scale me-1"></i>À délibérer en conseil</span>
+                                    {% elif item.decision_recommandee == 'redouble' %}
+                                        <span class="badge bg-danger"><i class="fas fa-redo me-1"></i>Redouble</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">-</span>
+                                    {% endif %}
+                                </td>
+                            {% endif %}
+                            <td class="text-center">
+                                {% if item.document %}
+                                    <a href="{% url 'issued_document_file' item.document.pk %}" class="btn btn-sm btn-outline-primary" target="_blank" title="Voir le bulletin PDF sécurisé">
+                                        <i class="fas fa-file-pdf text-danger me-1"></i> N° {{ item.document.numero_document }}
+                                    </a>
+                                {% else %}
+                                    <span class="badge bg-light text-muted border">En attente de génération</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="{% if periode == 'Annuel' %}8{% else %}7{% endif %}" class="text-center py-4 text-muted">
+                                <i class="fas fa-inbox fa-2x mb-2 d-block text-secondary"></i>
+                                Aucun élève noté pour cette période. Vérifiez la saisie des notes.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

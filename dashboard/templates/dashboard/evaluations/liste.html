@@ -1,0 +1,37 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Évaluations{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="h3 mb-1">Évaluations</h1>
+    <p class="text-muted mb-0">{{ annee_active.annee|default:'Aucune année active' }} · Chaque devoir ou composition conserve ses propres résultats.</p>
+  </div>
+  {% if annee_active %}<a href="{% url 'creer_evaluation' %}" class="btn btn-primary">Créer une évaluation</a>{% endif %}
+</div>
+{% if not annee_active %}
+  <div class="alert alert-warning">Activez une année scolaire pour gérer les évaluations.</div>
+{% else %}
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light"><tr><th>Classe et matière</th><th>Évaluation</th><th>Période</th><th>Date</th><th>Barème</th><th>Poids</th><th class="text-end">Action</th></tr></thead>
+        <tbody>
+        {% for evaluation in evaluations %}
+          <tr>
+            <td><strong>{{ evaluation.programme.classe.nom_classe }}</strong><br><span class="text-muted">{{ evaluation.programme.matiere.nom }}</span></td>
+            <td>{{ evaluation.titre }}{% if evaluation.type_evaluation %}<br><small class="text-muted">{{ evaluation.type_evaluation }}</small>{% endif %}</td>
+            <td>{{ evaluation.periode_evaluation }}</td>
+            <td>{{ evaluation.date_evaluation|date:'d/m/Y' }}</td>
+            <td>{{ evaluation.bareme|floatformat:2 }}</td>
+            <td>{{ evaluation.poids|floatformat:2 }}</td>
+            <td class="text-end"><a href="{% url 'saisir_resultats_evaluation' evaluation.pk %}" class="btn btn-outline-primary btn-sm">Saisir les résultats</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">Aucune évaluation créée pour votre année et vos matières.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

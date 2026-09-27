@@ -1,0 +1,17 @@
+{% extends "dashboard/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container py-4">
+  <h1>{% if inscription_courante %}Modifier l'inscription{% else %}Inscrire{% endif %} de {{ etudiant.prenom }} {{ etudiant.nom }}</h1>
+  <p>Année scolaire : {{ annee_active.annee }}</p>
+  {% if inscription_courante %}
+    <p class="text-muted">Classe enregistrée : {{ inscription_courante.classe.nom_classe|default:"Non attribuée" }} · Statut : {{ inscription_courante.get_statut_display }}</p>
+    <div class="alert alert-warning" role="note">Le changement de classe prend effet aujourd'hui et reste dans l'historique de cette inscription. Les transferts antérieurs à la reprise des données ne peuvent pas être reconstitués automatiquement.</div>
+  {% endif %}
+  <form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button class="btn btn-primary" type="submit">Enregistrer l'inscription</button>
+  </form>
+</div>
+{% endblock %}

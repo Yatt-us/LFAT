@@ -1,52 +1,13 @@
 {% extends 'dashboard/base.html' %}
-{% load static %}
-
-{% block title %}Confirmer la Suppression - {{ etudiant.prenom }} {{ etudiant.nom }}{% endblock %}
-
+{% block title %}Archiver un dossier élève{% endblock %}
 {% block content %}
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Confirmer la Suppression de l'Élève</h1>
-    </div>
-
-    {# Affichage des messages Django (par exemple, si une erreur s'est produite ou si la suppression a réussi) #}
-    {% if messages %}
-        <div class="mb-4">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Supprimer : {{ etudiant.prenom }} {{ etudiant.nom }}</h6>
-        </div>
-        <div class="card-body">
-            <p class="lead text-danger">
-                Êtes-vous sûr de vouloir supprimer l'élève **{{ etudiant.prenom }} {{ etudiant.nom }} (Matricule: {{ etudiant.numero_matricule|default:"N/A" }})** ?
-            </p>
-            <p>
-                Cette action est **IRRÉVERSIBLE** et entraînera la suppression de toutes les données associées à cet élève, y compris :
-            </p>
-            <ul>
-                <li>Toutes les notes enregistrées</li>
-                <li>Tous les paiements effectués</li>
-                <li>Toutes les présences enregistrées</li>
-                <li>Tous les certificats générés</li>
-                <li>Toute autre donnée liée directement à cet élève.</li>
-            </ul>
-            <p class="text-muted">
-                Veuillez vous assurer que vous avez sauvegardé toutes les informations nécessaires avant de procéder.
-            </p>
-
-            <form method="post" action="{% url 'supprimer_etudiant' etudiant.pk %}" class="mt-4">
-                {% csrf_token %} {# Très important pour la sécurité Django #}
-                <button type="submit" class="btn btn-danger me-2"><i class="fas fa-trash-alt me-1"></i>Oui, Supprimer Définitivement</button>
-                <a href="{% url 'detail_etudiant' etudiant.pk %}" class="btn btn-secondary"><i class="fas fa-arrow-left me-1"></i>Annuler et Retour aux Détails</a>
-            </form>
-        </div>
-    </div>
+<div class="container my-4">
+  <h1 class="h3">Archiver le dossier de {{ etudiant.prenom }} {{ etudiant.nom }}</h1>
+  <div class="alert alert-info">L'élève sortira des listes de l'année active. Ses notes, présences, frais, paiements et documents seront conservés.</div>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Confirmer l'archivage</button>
+    <a href="{% url 'detail_etudiant' etudiant.pk %}" class="btn btn-secondary">Retour</a>
+  </form>
+</div>
 {% endblock %}

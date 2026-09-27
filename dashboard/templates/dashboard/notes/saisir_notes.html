@@ -1,3 +1,4 @@
+{% load dashboard_filters %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -21,7 +22,7 @@
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans">
-    
+
     <div class="container mx-auto p-4 sm:p-8">
         <h2 class="text-3xl font-extrabold text-gray-900 mb-6">
             Saisie des Notes : {{ classe.nom_classe }} - {{ matiere.nom }}
@@ -42,18 +43,17 @@
         {% if etudiants %}
             <form method="POST" class="bg-white p-6 rounded-xl shadow-lg">
                 {% csrf_token %}
-                
+
                 <!-- Champs d'information communs à toutes les notes -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div>
                         <label for="periode_evaluation" class="block text-sm font-medium text-gray-700 mb-1">Période d'Évaluation <span class="text-red-500">*</span></label>
-                        <!-- Les options devraient être dynamiques (T1, T2, A1, S1, etc.) -->
                         <select name="periode_evaluation" id="periode_evaluation" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
-                            <option value="T1">Trimestre 1 (T1)</option>
-                            <option value="T2">Trimestre 2 (T2)</option>
-                            <option value="T3">Trimestre 3 (T3)</option>
-                            <option value="A1">Annuel</option>
+                            <option value="Trimestre 1" {% if periode_selectionnee == 'Trimestre 1' %}selected{% endif %}>Trimestre 1</option>
+                            <option value="Trimestre 2" {% if periode_selectionnee == 'Trimestre 2' %}selected{% endif %}>Trimestre 2</option>
+                            <option value="Trimestre 3" {% if periode_selectionnee == 'Trimestre 3' %}selected{% endif %}>Trimestre 3</option>
                         </select>
+                        <p class="text-xs text-gray-500 mt-1">Le bulletin annuel est calculé depuis les trimestres selon la règle validée par l'école.</p>
                     </div>
                     <div>
                         <label for="type_evaluation" class="block text-sm font-medium text-gray-700 mb-1">Type d'Évaluation <span class="text-red-500">*</span></label>
@@ -61,7 +61,7 @@
                     </div>
                     <div>
                         <label for="date_evaluation" class="block text-sm font-medium text-gray-700 mb-1">Date de l'Évaluation <span class="text-red-500">*</span></label>
-                        <input type="date" id="date_evaluation" name="date_evaluation" required value="{{ 'now'|date:'Y-m-d' }}" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                        <input type="date" id="date_evaluation" name="date_evaluation" required value="{% now 'Y-m-d' %}" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
                     </div>
                 </div>
 
@@ -84,19 +84,19 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             {% for etudiant in etudiants %}
                                 <!-- Nous utilisons l'accès par dictionnaire standard pour simuler le get_item -->
-                                {% with existing_note=notes_existantes|get:etudiant.pk %}
+                                {% with existing_note=notes_existantes|get_item:etudiant.pk %}
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                         {{ etudiant.prenom }} {{ etudiant.nom }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <input 
-                                            type="number" 
-                                            name="note_{{ etudiant.pk }}" 
-                                            step="0.01" 
-                                            min="0" 
-                                            max="20" 
-                                            placeholder="--/20" 
+                                        <input
+                                            type="number"
+                                            name="note_{{ etudiant.pk }}"
+                                            step="0.01"
+                                            min="0"
+                                            max="20"
+                                            placeholder="--/20"
                                             value="{% if existing_note %}{{ existing_note.valeur|floatformat:2 }}{% endif %}"
                                             class="w-24 text-center rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-1.5 border"
                                         >
@@ -115,17 +115,17 @@
                         </tbody>
                     </table>
                 </div>
-                
+
                 <!-- Boutons d'action -->
                 <div class="mt-8 flex justify-end space-x-4">
                     <!-- Bouton Annuler -->
-                    <a href="{% url 'liste_notes_par_classe_matiere' classe_id=classe.pk matiere_id=matiere.pk %}" 
+                    <a href="{% url 'notes_par_classe_matiere' classe.pk matiere.pk %}"
                        class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition duration-150 ease-in-out shadow-md">
                         Annuler
                     </a>
-                    
+
                     <!-- Bouton Soumettre -->
-                    <button type="submit" 
+                    <button type="submit"
                             class="inline-flex items-center px-6 py-2 border border-transparent text-lg font-medium rounded-lg shadow-xl text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out">
                         Enregistrer les Notes
                     </button>

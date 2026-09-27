@@ -1,0 +1,17 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Créer une séance{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between gap-3 mb-4">
+  <div><h1 class="h3 mb-1">Créer une séance</h1><p class="text-muted mb-0">Année {{ annee.annee }} · Choisissez un programme avec enseignant affecté.</p></div>
+  <a class="btn btn-outline-secondary" href="{% url 'vie_scolaire:liste_seances' %}">Retour</a>
+</div>
+<form method="post" class="card border-0 shadow-sm p-4" style="max-width: 45rem">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+  {% for field in form.visible_fields %}
+    <div class="mb-3"><label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>{{ field }}{% if field.errors %}<div class="text-danger small">{{ field.errors }}</div>{% endif %}</div>
+  {% endfor %}
+  <p class="text-muted small">Une séance ne peut pas chevaucher un autre cours de sa classe ou de son enseignant.</p>
+  <div><button type="submit" class="btn btn-primary">Créer et ouvrir l’appel</button></div>
+</form>
+{% endblock %}

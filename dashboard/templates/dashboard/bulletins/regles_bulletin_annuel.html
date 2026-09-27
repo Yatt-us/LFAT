@@ -1,0 +1,58 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Règles des bulletins annuels{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+  <div>
+    <p class="text-uppercase text-primary fw-semibold small mb-1">Configuration scolaire</p>
+    <h1 class="h3 mb-2">Règles des bulletins annuels</h1>
+    <p class="text-muted mb-0">Définissez les poids des trois trimestres pour chaque cycle et chaque année scolaire. Un poids de 0 exclut le trimestre du calcul annuel.</p>
+  </div>
+  {% if groupes %}<a class="btn btn-primary" href="{% url 'creer_regle_bulletin_annuel' %}"><i class="fas fa-plus me-2" aria-hidden="true"></i>Créer une règle</a>{% endif %}
+</div>
+
+{% for groupe in groupes %}
+<section class="card border-0 shadow-sm mb-4" aria-labelledby="annee-{{ groupe.annee.pk }}">
+  <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-2 py-3">
+    <h2 class="h5 mb-0" id="annee-{{ groupe.annee.pk }}">Année {{ groupe.annee.annee }}</h2>
+    {% if groupe.annee.active %}<span class="badge text-bg-success">Année active</span>{% endif %}
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead class="table-light"><tr><th scope="col">Cycle</th><th scope="col">Poids T1 / T2 / T3</th><th scope="col">Décision</th><th scope="col" class="text-end">Action</th></tr></thead>
+        <tbody>
+          {% for ligne in groupe.cycles %}
+          <tr>
+            <th scope="row">{{ ligne.libelle }}</th>
+            {% if ligne.regle %}
+              <td>{{ ligne.regle.poids_trimestre_1 }} / {{ ligne.regle.poids_trimestre_2 }} / {{ ligne.regle.poids_trimestre_3 }}</td>
+              <td>
+                {% if ligne.regle.est_validee %}
+                  <span class="badge text-bg-success">Validée</span>
+                  <span class="small text-muted d-block mt-1">{{ ligne.regle.valide_le|date:'d/m/Y à H:i' }} · {{ ligne.regle.valide_par.get_full_name|default:ligne.regle.valide_par.username }}</span>
+                {% else %}<span class="badge text-bg-warning">À valider</span>{% endif %}
+              </td>
+              <td class="text-end">
+                <div class="d-inline-flex flex-wrap justify-content-end gap-2">
+                  <a class="btn btn-sm btn-outline-primary" href="{% url 'modifier_regle_bulletin_annuel' ligne.regle.pk %}">Modifier</a>
+                  {% if not ligne.regle.est_validee %}
+                  <form method="post" action="{% url 'valider_regle_bulletin_annuel' ligne.regle.pk %}">{% csrf_token %}<button class="btn btn-sm btn-success" type="submit">Valider</button></form>
+                  {% endif %}
+                </div>
+              </td>
+            {% else %}
+              <td class="text-muted">Non définis</td>
+              <td><span class="badge text-bg-secondary">Aucune règle</span></td>
+              <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{% url 'creer_regle_bulletin_annuel' %}?annee={{ groupe.annee.pk }}&amp;cycle={{ ligne.code }}">Définir</a></td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% empty %}
+<div class="alert alert-info" role="status">Créez d’abord une année scolaire pour configurer les bulletins annuels. <a href="{% url 'creer_annee_scolaire' %}" class="alert-link">Créer une année</a></div>
+{% endfor %}
+{% endblock %}

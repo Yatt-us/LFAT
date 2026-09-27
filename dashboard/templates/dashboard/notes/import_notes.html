@@ -1,172 +1,37 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Importer des Notes</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chosen Palette: Cool Blues and Grays -->
-    <!-- Application Structure Plan: The SPA is designed as a task-oriented interface for uploading a file. The structure is a single, centered column with three main components: a collapsible accordion for detailed instructions to reduce initial clutter, a prominent feedback area for post-upload messages, and a clean, focused form card for the primary action. This structure guides the user directly to the task, making instructions accessible without being obtrusive, which is ideal for a functional page like this. -->
-    <!-- Visualization & Content Choices: 1. Instructions: Report content presented in an HTML list (`<ol>`) within a collapsible accordion. Goal: Inform without overwhelming. Interaction: Click to toggle visibility. Justification: Keeps the UI focused on the main task. Method: HTML/JS. 2. Upload Form: Standard HTML form with styled file input and button. Goal: Enable the core task. Interaction: File selection and submission click. Justification: Standard, intuitive pattern for file uploads. Method: HTML/Tailwind CSS. 3. Feedback Messages: A styled `div` shown/hidden via JS. Goal: Provide clear feedback. Interaction: Appears post-submission. Justification: Essential for user confirmation. Method: HTML/JS. NO SVG/Mermaid used. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-    <style>
-        body {
-            background-color: #f8fafc;
-        }
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-    </style>
-</head>
-<body class="font-sans antialiased text-gray-800">
-
-    <div class="container mx-auto p-4 md:p-8">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-800">Importer des Notes</h1>
-            <p class="text-gray-600 mt-2">Mettez à jour ou ajoutez des notes en téléchargeant un fichier Excel.</p>
-        </header>
-
-        <main class="max-w-3xl mx-auto">
-            
-            <!-- Zone de Messages / Feedback -->
-            <div id="feedback-message" class="hidden mb-6 p-4 rounded-lg shadow-md flex items-center">
-                <span id="feedback-icon" class="mr-3 text-xl"></span>
-                <p id="feedback-text"></p>
-                <button onclick="this.parentElement.classList.add('hidden')" class="ml-auto text-lg">&times;</button>
-            </div>
-
-            <!-- Accordéon pour les Instructions -->
-            <div class="bg-white rounded-lg shadow-md mb-8">
-                <button id="accordion-toggle" class="w-full flex justify-between items-center p-5 font-semibold text-left text-blue-600 hover:bg-blue-50 transition">
-                    <span><i class="fas fa-info-circle mr-2"></i>Afficher les Instructions pour l'Importation</span>
-                    <i id="accordion-icon" class="fas fa-chevron-down transition-transform"></i>
-                </button>
-                <div id="accordion-content" class="accordion-content">
-                    <div class="p-5 border-t">
-                        <ol class="list-decimal list-inside text-sm text-gray-600 space-y-3">
-                            <li>Téléchargez le modèle Excel via le bouton <strong>"Exporter les notes"</strong> sur votre tableau de bord pour obtenir le format correct.</li>
-                            <li>Remplissez les colonnes <code class="bg-gray-200 px-1 rounded">MATRICULE</code>, <code class="bg-gray-200 px-1 rounded">MATIERE</code>, <code class="bg-gray-200 px-1 rounded">PERIODE</code>, et <code class="bg-gray-200 px-1 rounded">NOTE</code>.</li>
-                            <li>Les valeurs dans ces colonnes doivent correspondre exactement aux données de votre système pour être reconnues.</li>
-                            <li>La colonne <code class="bg-gray-200 px-1 rounded">ANNEE_SCOLAIRE</code> sera ignorée ; les notes seront automatiquement associées à l'année scolaire active.</li>
-                            <li>Enregistrez votre fichier au format <code class="bg-gray-200 px-1 rounded">.xlsx</code> ou <code class="bg-gray-200 px-1 rounded">.xls</code> avant de le téléverser.</li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Formulaire de Téléversement -->
-            <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg">
-                <form id="upload-form" method="post" enctype="multipart/form-data" class="space-y-6">
-                    <div>
-                        <label for="file-upload" class="block text-lg font-medium text-gray-700 mb-2">Sélectionner le Fichier Excel</label>
-                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                            <div class="space-y-1 text-center">
-                                <i class="fas fa-file-excel mx-auto h-12 w-12 text-gray-400"></i>
-                                <div class="flex text-sm text-gray-600">
-                                    <label for="file-input" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                                        <span>Téléverser un fichier</span>
-                                        <input id="file-input" name="file" type="file" class="sr-only" required accept=".xlsx, .xls">
-                                    </label>
-                                    <p class="pl-1">ou glissez-déposez</p>
-                                </div>
-                                <p id="file-name" class="text-xs text-gray-500">XLSX, XLS jusqu'à 10MB</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" id="submit-button" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
-                        <span id="button-text">Importer les Notes</span>
-                        <i id="button-loader" class="fas fa-spinner fa-spin hidden ml-2"></i>
-                    </button>
-                </form>
-            </div>
-        </main>
-    </div>
-
-    <script>
-        const accordionToggle = document.getElementById('accordion-toggle');
-        const accordionContent = document.getElementById('accordion-content');
-        const accordionIcon = document.getElementById('accordion-icon');
-
-        accordionToggle.addEventListener('click', () => {
-            const isExpanded = accordionContent.style.maxHeight;
-            if (isExpanded && isExpanded !== '0px') {
-                accordionContent.style.maxHeight = '0px';
-                accordionIcon.classList.remove('rotate-180');
-            } else {
-                accordionContent.style.maxHeight = accordionContent.scrollHeight + 'px';
-                accordionIcon.classList.add('rotate-180');
-            }
-        });
-        
-        const fileInput = document.getElementById('file-input');
-        const fileNameDisplay = document.getElementById('file-name');
-
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files.length > 0) {
-                fileNameDisplay.textContent = fileInput.files[0].name;
-                fileNameDisplay.classList.add('font-semibold', 'text-blue-700');
-            } else {
-                fileNameDisplay.textContent = 'XLSX, XLS jusqu\'à 10MB';
-                fileNameDisplay.classList.remove('font-semibold', 'text-blue-700');
-            }
-        });
-
-        const uploadForm = document.getElementById('upload-form');
-        const submitButton = document.getElementById('submit-button');
-        const buttonText = document.getElementById('button-text');
-        const buttonLoader = document.getElementById('button-loader');
-        const feedbackMessage = document.getElementById('feedback-message');
-        const feedbackText = document.getElementById('feedback-text');
-        const feedbackIcon = document.getElementById('feedback-icon');
-
-        uploadForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            if (!fileInput.files.length) {
-                showFeedback('Veuillez sélectionner un fichier avant de continuer.', 'error');
-                return;
-            }
-
-            // Simuler le téléversement
-            buttonText.textContent = 'Importation en cours...';
-            buttonLoader.classList.remove('hidden');
-            submitButton.disabled = true;
-
-            setTimeout(() => {
-                // Rétablir l'état du bouton
-                buttonText.textContent = 'Importer les Notes';
-                buttonLoader.classList.add('hidden');
-                submitButton.disabled = false;
-                
-                // Afficher un message de succès
-                showFeedback('Importation réussie ! Les notes ont été mises à jour.', 'success');
-
-                // Réinitialiser le nom du fichier affiché
-                fileNameDisplay.textContent = 'XLSX, XLS jusqu\'à 10MB';
-                fileNameDisplay.classList.remove('font-semibold', 'text-blue-700');
-                uploadForm.reset();
-            }, 2000);
-        });
-
-        function showFeedback(message, type) {
-            feedbackText.textContent = message;
-            feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
-            feedbackIcon.className = 'mr-3 text-xl';
-
-            if (type === 'success') {
-                feedbackMessage.classList.add('bg-green-100', 'text-green-800');
-                feedbackIcon.classList.add('fas', 'fa-check-circle');
-            } else if (type === 'error') {
-                feedbackMessage.classList.add('bg-red-100', 'text-red-800');
-                feedbackIcon.classList.add('fas', 'fa-exclamation-triangle');
-            }
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    </script>
-</body>
-</html>
+{% extends 'dashboard/base.html' %}
+{% block title %}Importer des notes{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="h3 mb-1">Importer des notes anciennes</h1>
+    <p class="text-muted mb-0">L'import concerne le registre historique : une note par matière et trimestre.</p>
+  </div>
+  <a href="{% url 'liste_evaluations' %}" class="btn btn-outline-primary">Gérer les évaluations détaillées</a>
+</div>
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card shadow-sm"><div class="card-body p-4">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="notes-file" class="form-label fw-semibold">Fichier Excel (.xlsx)</label>
+        <input id="notes-file" name="file" type="file" accept=".xlsx" class="form-control" required>
+        <p class="form-text">Taille maximale : 10 Mo. L'import est entièrement annulé si une ligne est invalide ou entre en conflit avec une évaluation détaillée.</p>
+        <button type="submit" class="btn btn-primary mt-3">Importer les notes</button>
+      </form>
+    </div></div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card shadow-sm"><div class="card-body p-4">
+      <h2 class="h5">Colonnes attendues</h2>
+      <ol class="small mb-0">
+        <li>MATRICULE</li>
+        <li>NOM et PRENOM</li>
+        <li>CLASSE et MATIERE</li>
+        <li>NOTE entre 0 et 20</li>
+        <li>PERIODE : Trimestre 1, Trimestre 2 ou Trimestre 3. Le bulletin annuel est calculé selon la règle validée par l'école.</li>
+        <li>ANNEE_SCOLAIRE, à titre indicatif : le serveur utilise l'année active</li>
+      </ol>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

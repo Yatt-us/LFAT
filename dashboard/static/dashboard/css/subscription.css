@@ -1,0 +1,124 @@
+* { box-sizing: border-box; }
+:root {
+  font-synthesis: none;
+  color-scheme: light;
+  --ink: #172844;
+  --muted: #62748e;
+  --line: #e1e8f2;
+  --primary: #4f5edb;
+}
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--ink);
+  background: radial-gradient(circle at 15% 15%, rgba(128, 227, 210, .24), transparent 30%),
+              radial-gradient(circle at 90% 5%, rgba(116, 134, 236, .18), transparent 34%),
+              #f3f6fb;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.5;
+}
+button { font: inherit; }
+a, button { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid rgba(79, 94, 219, .45); outline-offset: 3px; }
+.subscription-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px 16px;
+}
+.subscription-card {
+  width: min(100%, 590px);
+  padding: clamp(28px, 5vw, 44px);
+  border: 1px solid rgba(220, 229, 241, .85);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 25px 80px rgba(22, 43, 78, .1);
+}
+.subscription-brand { display: flex; align-items: center; gap: 10px; color: #304663; font-size: 13px; font-weight: 780; }
+.subscription-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(135deg, #5969de, #19b09b);
+}
+.subscription-brand-mark svg { width: 28px; height: 28px; }
+.subscription-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 36px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #fff5dd;
+  color: #896521;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.subscription-status span { width: 7px; height: 7px; border-radius: 50%; background: #d9a638; }
+.subscription-card h1 {
+  margin: 15px 0 9px;
+  font-size: clamp(25px, 4vw, 35px);
+  line-height: 1.15;
+  letter-spacing: -.035em;
+}
+.subscription-lead { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.65; }
+.subscription-messages { margin-top: 22px; }
+.subscription-notice { margin: 0 0 8px; padding: 12px 14px; border-radius: 10px; background: #eef4ff; color: #315e9b; font-size: 13px; }
+.subscription-notice--success { background: #e9f8f2; color: #13775c; }
+.subscription-notice--warning, .subscription-notice--error { background: #fff4e4; color: #875d1c; }
+.subscription-summary {
+  display: grid;
+  gap: 0;
+  margin: 27px 0;
+  padding: 3px 18px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: #f8faff;
+}
+.subscription-summary > div { display: flex; justify-content: space-between; gap: 20px; padding: 12px 0; }
+.subscription-summary > div + div { border-top: 1px solid var(--line); }
+.subscription-summary dt { color: #7788a0; font-size: 12px; }
+.subscription-summary dd { margin: 0; color: #253854; font-size: 12px; font-weight: 760; text-align: right; }
+.subscription-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 15px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--primary);
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 750;
+  text-align: center;
+  text-decoration: none;
+  box-shadow: 0 8px 18px rgba(79, 94, 219, .18);
+}
+.subscription-primary:hover { background: #3f4dbd; color: #fff; }
+.subscription-guidance { padding: 13px 15px; border-radius: 10px; background: #eef4ff; color: #3d5d89; font-size: 13px; }
+.subscription-logout { margin-top: 11px; }
+.subscription-logout button {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #d9e1ed;
+  border-radius: 10px;
+  background: #fff;
+  color: #435773;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+.subscription-logout button:hover { border-color: #aebbe0; background: #f7f9ff; color: #2c3e82; }
+@media (max-width: 560px) {
+  .subscription-card { border-radius: 18px; }
+  .subscription-summary > div { display: grid; gap: 3px; }
+  .subscription-summary dd { text-align: left; }
+}

@@ -1,0 +1,3 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Vérification de la carte</title></head>
+<body><main><h1>Carte scolaire vérifiée</h1><p>Établissement : {{ ecole.nom_etablissement }}</p><p>Élève : {{ etudiant.prenom }} {{ etudiant.nom }}</p><p>Matricule : {{ etudiant.numero_matricule|default:"Non attribué" }}</p><p>Classe : {{ classe.nom_classe|default:"Non renseignée" }}</p><p>Année scolaire : {{ annee_scolaire.annee|default:"Non renseignée" }}</p></main></body></html>

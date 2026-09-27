@@ -1,59 +1,29 @@
 {% extends 'dashboard/base.html' %}
-{% load static %} {# Good practice to include if using static files #}
-
-{% block title %}Paiements Impayés/Partiels{% endblock %}
-
+{% load static %}
+{% block title %}Frais scolaires à recouvrer{% endblock %}
+{% block extra_css %}<link href="{% static 'dashboard/css/legacy-lists.css' %}" rel="stylesheet">{% endblock %}
 {% block content %}
-    <h2 class="mb-4">Paiements Impayés ou Partiels (Année Scolaire Active : <span class="text-primary">{{ annee_active.annee|default:"Non définie" }}</span>)</h2>
-
-    {% if paiements_impayes %}
-        <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle"> {# Added align-middle for better vertical alignment #}
-                <thead>
-                    <tr>
-                        <th scope="col">Élève</th>
-                        <th scope="col">Classe</th>
-                        <th scope="col">Motif</th>
-                        <th scope="col">Montant Dû</th>
-                        <th scope="col">Montant Payé</th> {# Added Montant Payé for clarity #}
-                        <th scope="col">Statut</th>
-                        <th scope="col">Date Paiement</th>
-                        <th scope="col">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for paiement in paiements_impayes %}
-                        <tr>
-                            <td><a href="{% url 'detail_etudiant' paiement.etudiant.pk %}" class="text-decoration-none text-dark fw-bold">{{ paiement.etudiant.prenom }} {{ paiement.etudiant.nom }}</a></td>
-                            <td>{{ paiement.etudiant.classe.nom_classe|default:"Non assigné" }}</td>
-                            <td>{{ paiement.motif_paiement }}</td>
-                            <td>{{ paiement.montant_du|floatformat:0 }} FCFA</td> {# Removed 2 decimal places for currency, adjust as needed #}
-                            <td>{{ paiement.montant|floatformat:0 }} FCFA</td> {# Display current paid amount #}
-                            <td><span class="badge bg-{% if paiement.statut == 'Partiel' %}warning{% elif paiement.statut == 'Impayé' %}danger{% else %}info{% endif %}">{{ paiement.statut }}</span></td>
-                            <td>{{ paiement.date_paiement|date:"d M Y" }}</td>
-                            <td>
-                                <a href="{% url 'modifier_paiement' paiement.pk %}" class="btn btn-warning btn-sm me-1" data-bs-toggle="tooltip" title="Modifier/Compléter"><i class="fas fa-edit"></i></a>
-                                <a href="{% url 'supprimer_paiement' paiement.pk %}" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" title="Supprimer"><i class="fas fa-trash-alt"></i></a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    {% else %}
-        <div class="alert alert-success" role="alert">
-            <i class="fas fa-check-circle me-2"></i>
-            Tous les paiements sont à jour pour l'année scolaire active ! Aucun paiement impayé ou partiel trouvé.
-        </div>
-    {% endif %}
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-</script>
+<div class="container my-4">
+  <h1 class="h3">Frais à recouvrer — {{ annee_active.annee }}</h1>
+  <div class="table-responsive legacy-table-container">
+    <table class="table table-striped align-middle legacy-card-table">
+      <thead><tr><th>Élève</th><th>Motif</th><th>Dû</th><th>Encaissé</th><th>Restant</th><th>État</th><th></th></tr></thead>
+      <tbody>
+        {% for frais in creances_impayees %}
+          <tr>
+            <td data-label="Élève"><a href="{% url 'detail_etudiant' frais.etudiant.pk %}">{{ frais.etudiant.prenom }} {{ frais.etudiant.nom }}</a></td>
+            <td data-label="Motif">{{ frais.motif }}{% if frais.libelle %} — {{ frais.libelle }}{% endif %}</td>
+            <td data-label="Dû">{{ frais.montant_du|floatformat:0 }} FCFA</td>
+            <td data-label="Encaissé">{{ frais.montant_paye|floatformat:0 }} FCFA</td>
+            <td data-label="Restant">{{ frais.solde_restant|floatformat:0 }} FCFA</td>
+            <td data-label="État">{{ frais.statut }}{% if frais.trop_percu %}<br><span class="badge bg-danger">Trop-perçu : {{ frais.trop_percu|floatformat:0 }} FCFA</span>{% endif %}</td>
+            <td data-label="Actions"><div class="legacy-actions"><a href="{% url 'modifier_creance_scolaire' frais.pk %}" class="btn btn-sm btn-outline-primary">Vérifier</a></div></td>
+          </tr>
+        {% empty %}
+          <tr class="legacy-empty-row"><td colspan="7">Aucun frais à recouvrer.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

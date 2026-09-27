@@ -1,0 +1,15 @@
+# Données locales et documents scolaires
+db.sqlite3
+media/
+private_media/
+env/
+staticfiles/
+__pycache__/
+*.pyc
+
+# Dépendances du frontend React
+frontend/node_modules/
+# Dépendances et sortie intermédiaire du tableau de bord Angular
+admin-frontend/node_modules/
+admin-frontend/dist/
+private_backups/

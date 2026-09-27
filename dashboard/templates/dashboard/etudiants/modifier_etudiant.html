@@ -45,8 +45,8 @@
                     <label for="{{ form.photo_profil.id_for_label }}" class="form-label">Photo de Profil</label>
                     {% if etudiant.photo_profil %}
                         <div class="mb-2">
-                            <img src="{{ etudiant.photo_profil.url }}" alt="Photo actuelle" class="img-thumbnail" style="max-width:150px;">
-                            <small class="text-muted d-block">Fichier actuel : <a href="{{ etudiant.photo_profil.url }}" target="_blank">{{ etudiant.photo_profil.name }}</a></small>
+                            <img src="{% url 'student_photo' etudiant.pk %}" alt="Photo actuelle" class="img-thumbnail" style="max-width:150px;">
+                            <small class="text-muted d-block">Fichier actuel : <a href="{% url 'student_photo' etudiant.pk %}" target="_blank">{{ etudiant.photo_profil.name }}</a></small>
                         </div>
                     {% endif %}
                     {{ form.photo_profil }}
@@ -130,40 +130,32 @@
             </div>
 
             <hr class="my-4">
-            <h5 class="mb-3">Informations d'Inscription et Parentales</h5>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label for="{{ form.classe.id_for_label }}" class="form-label">Classe</label>
-                    {{ form.classe }}
-                    {% for error in form.classe.errors %}
-                        <div class="text-danger small">{{ error }}</div>
-                    {% endfor %}
-                </div>
-                <div class="col-md-6">
-                    <label for="{{ form.annee_scolaire_inscription.id_for_label }}" class="form-label">Année Scolaire d'Inscription</label>
-                    {{ form.annee_scolaire_inscription }}
-                    {% for error in form.annee_scolaire_inscription.errors %}
-                        <div class="text-danger small">{{ error }}</div>
-                    {% endfor %}
-                </div>
+            <h5 class="mb-3">Inscription annuelle et contacts parentaux</h5>
+            <div class="alert alert-info" role="note">
+                {% if inscription_courante %}
+                    <strong>{{ inscription_courante.annee_scolaire.annee }}</strong> :
+                    {{ inscription_courante.classe.nom_classe|default:"Classe non attribuée" }}
+                    · {{ inscription_courante.get_statut_display }}
+                    · inscrit le {{ inscription_courante.date_inscription|date:"d/m/Y" }}.
+                    <a href="{% url 'inscrire_etudiant' etudiant.pk %}" class="alert-link">Modifier l'inscription annuelle</a>
+                {% elif annee_active %}
+                    Aucune inscription pour {{ annee_active.annee }}.
+                    <a href="{% url 'inscrire_etudiant' etudiant.pk %}" class="alert-link">Inscrire l'élève</a>
+                {% else %}
+                    Aucune année scolaire active. Activez une année avant d'inscrire l'élève.
+                {% endif %}
             </div>
-
-            <div class="row g-3 mt-2">
-                <div class="col-md-6">
-                    <label for="{{ form.date_inscription.id_for_label }}" class="form-label">Date d'Inscription</label>
-                    {{ form.date_inscription }}
-                    {% for error in form.date_inscription.errors %}
-                        <div class="text-danger small">{{ error }}</div>
-                    {% endfor %}
+            {% if form.statut %}
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <label for="{{ form.statut.id_for_label }}" class="form-label">Statut du dossier</label>
+                        {{ form.statut }}
+                        {% for error in form.statut.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label for="{{ form.statut.id_for_label }}" class="form-label">Statut</label>
-                    {{ form.statut }}
-                    {% for error in form.statut.errors %}
-                        <div class="text-danger small">{{ error }}</div>
-                    {% endfor %}
-                </div>
-            </div>
+            {% endif %}
 
             <div class="row g-3 mt-2">
                 <div class="col-md-6">

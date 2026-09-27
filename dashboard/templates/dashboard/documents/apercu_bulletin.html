@@ -1,0 +1,40 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Prévisualisation du bulletin{% endblock %}
+{% block content %}
+<div class="container my-4" style="max-width: 920px">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <p class="text-uppercase small text-muted mb-1">Contrôle avant publication</p>
+      <h1 class="h3 mb-1">{{ titre }}</h1>
+      <p class="text-muted mb-0">{{ etudiant.prenom }} {{ etudiant.nom }} · {{ inscription.classe.nom_classe }} · {{ inscription.annee_scolaire.annee }} · {{ periode }}</p>
+    </div>
+    <a href="{% url 'detail_etudiant' etudiant.pk %}" class="btn btn-outline-secondary">Retour au dossier</a>
+  </div>
+  <div class="alert alert-info" role="note">
+    Vérifiez les résultats et le modèle du document. L'émission crée un PDF officiel avec un code de vérification ; une nouvelle publication pour cette période annulera la version précédente.
+  </div>
+  <section class="card shadow-sm mb-4">
+    <div class="card-body">
+      {% if entete %}<p class="text-center text-muted" style="white-space: pre-line">{{ entete }}</p>{% endif %}
+      {% if corps %}<p style="white-space: pre-line">{{ corps }}</p>{% endif %}
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead><tr><th>Matière</th><th class="text-end">Moyenne / 20</th><th class="text-end">Coefficient</th></tr></thead>
+          <tbody>
+            {% for note in notes %}
+              <tr><td>{{ note.matiere }}</td><td class="text-end">{{ note.valeur }}</td><td class="text-end">{{ note.coefficient }}</td></tr>
+            {% endfor %}
+          </tbody>
+          <tfoot><tr><th>Moyenne générale</th><th class="text-end">{{ moyenne }} / 20</th><th></th></tr></tfoot>
+        </table>
+      </div>
+      {% if mention %}<p class="small text-muted" style="white-space: pre-line">{{ mention }}</p>{% endif %}
+      {% if titre_signataire %}<p class="text-end mb-0">{{ titre_signataire }}</p>{% endif %}
+    </div>
+  </section>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Publier et télécharger le bulletin</button>
+  </form>
+</div>
+{% endblock %}

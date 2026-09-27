@@ -1,0 +1,52 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}{% if regle %}Modifier{% else %}Créer{% endif %} une règle de bulletin annuel{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+  <div>
+    <p class="text-uppercase text-primary fw-semibold small mb-1">Configuration scolaire</p>
+    <h1 class="h3 mb-2">{% if regle %}Modifier{% else %}Créer{% endif %} une règle de bulletin annuel</h1>
+    <p class="text-muted mb-0">Saisissez trois poids relatifs, sans valeur proposée. Leur somme doit être supérieure à zéro.</p>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% url 'liste_regles_bulletin_annuel' %}">Retour aux règles</a>
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width: 760px;">
+  <div class="card-body p-4">
+    {% if regle and regle.est_validee %}<div class="alert alert-warning" role="status">Changer les poids retirera la validation actuelle. La direction devra valider la nouvelle règle.</div>{% endif %}
+    {% if form.non_field_errors %}<div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold" for="{{ form.annee_scolaire.id_for_label }}">{{ form.annee_scolaire.label }}</label>
+          {{ form.annee_scolaire }}
+          {% for error in form.annee_scolaire.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold" for="{{ form.cycle.id_for_label }}">{{ form.cycle.label }}</label>
+          {{ form.cycle }}
+          {% for error in form.cycle.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+        </div>
+      </div>
+      <hr class="my-4">
+      <p class="fw-semibold mb-1">Pondération des trimestres</p>
+      <p class="text-muted small mb-3">Exemple de lecture : 1 / 1 / 2 donne deux fois plus de poids au 3e trimestre. Zéro exclut un trimestre.</p>
+      <div class="row g-3">
+        {% for field in form %}
+          {% if field.name != 'annee_scolaire' and field.name != 'cycle' %}
+          <div class="col-md-4">
+            <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top">
+        <button class="btn btn-primary" type="submit">Enregistrer la règle</button>
+        <a class="btn btn-outline-secondary" href="{% url 'liste_regles_bulletin_annuel' %}">Annuler</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

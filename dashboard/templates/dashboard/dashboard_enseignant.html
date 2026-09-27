@@ -1,0 +1,13 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Espace enseignant{% endblock %}
+
+{% block content %}
+<div id="overview-root">
+  <p class="text-muted">Chargement de l’espace enseignant…</p>
+</div>
+{{ overview_payload|json_script:"overview-data" }}
+<noscript>
+  <p>Activez JavaScript pour afficher l’espace enseignant.</p>
+</noscript>
+{% endblock %}

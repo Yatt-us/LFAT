@@ -16,6 +16,8 @@
         </form>
     </div>
 
+    <p class="alert alert-light border">Pointages d’absence : <strong>{{ total_absences }}</strong> · statut « Absent » : {{ absences_statut_absent }} · absences excusées : {{ absences_excusees }}. Une pièce fournie ne signifie pas que le motif a été validé.</p>
+
     {% if presences_par_etudiant %}
         <div class="accordion" id="accordionPresence">
             {% for etudiant, presences in presences_par_etudiant.items %}
@@ -38,23 +40,23 @@
                                             <th>Heure Début</th>
                                             <th>Heure Fin</th>
                                             <th>Motif</th>
-                                            <th>Justificatif</th>
+                                            <th>Pièce fournie</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% for presence in presences %}
                                             <tr>
                                                 <td>{{ presence.date|date:"d M Y" }}</td>
-                                                <td><span class="badge bg-{% if presence.statut == 'Présent' %}success{% elif presence.statut == 'Absent' %}danger{% elif presence.statut == 'Retard' %}warning{% else %}info{% endif %}">{{ presence.statut }}</span></td>
+                                                <td><span class="badge bg-{% if presence.statut == 'Présent' %}success{% elif presence.statut == 'Absent' %}danger{% elif presence.statut == 'Retard' %}warning{% else %}info{% endif %}">{% if presence.statut == 'Excusé' %}Absence excusée{% else %}{{ presence.statut }}{% endif %}</span></td>
                                                 <td>{{ presence.matiere.nom|default:"Général" }}</td>
                                                 <td>{{ presence.heure_debut_cours|date:"H:i"|default:"N/A" }}</td>
                                                 <td>{{ presence.heure_fin_cours|date:"H:i"|default:"N/A" }}</td>
                                                 <td>{{ presence.motif_absence_retard|default:"-" }}</td>
                                                 <td>
                                                     {% if presence.justificatif_fourni %}
-                                                        <i class="fas fa-check-circle text-success"></i> Oui
+                                                        <i class="fas fa-check-circle text-success"></i> Fournie
                                                     {% else %}
-                                                        <i class="fas fa-times-circle text-danger"></i> Non
+                                                        <i class="fas fa-times-circle text-danger"></i> Non fournie
                                                     {% endif %}
                                                 </td>
                                             </tr>

@@ -1,0 +1,30 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}{{ action }} un frais scolaire{% endblock %}
+{% block content %}
+<div class="container my-4">
+  <h1 class="h3">{{ action }} un frais scolaire</h1>
+  <p class="text-muted">{{ etudiant.prenom }} {{ etudiant.nom }} — {{ annee_active.annee }}</p>
+  {% if creance.a_verifier %}
+    <div class="alert alert-warning">Le montant repris de l'ancien système doit être vérifié avant un nouvel encaissement.</div>
+  {% endif %}
+  <form method="post" class="card card-body shadow-sm">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      <div class="mb-3">
+        {% if field.field.widget.input_type == 'checkbox' %}
+          <div class="form-check">{{ field }} <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label></div>
+        {% else %}
+          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+        {% endif %}
+        {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+      </div>
+    {% endfor %}
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">Enregistrer</button>
+      <a href="{% url 'detail_etudiant' etudiant.pk %}" class="btn btn-secondary">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

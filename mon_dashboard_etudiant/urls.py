@@ -15,22 +15,24 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 # mon_dashboard_etudiant/urls.py
-from django.contrib import admin
+from dashboard.admin_site import site as admin_site
+from dashboard.views.private_files import school_logo
 from django.urls import path, include
 from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', admin_site.urls),
+    path('ecoles/<int:ecole_id>/logo/', school_logo, name='school_logo'),
     path('', include('dashboard.urls')),
-    
-    
+    path('vie-scolaire/', include('vie_scolaire.urls')),
 
-    
+
+
+
   # URLs d'authentification personnalisées
     path('accounts/login/', auth_views.LoginView.as_view(template_name='accounts/connexion.html'), name='login'),
-    path('accounts/logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
+    path('accounts/logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     path('accounts/password_change/', auth_views.PasswordChangeView.as_view(template_name='accounts/password_change_form.html'), name='password_change'),
     path('accounts/password_change/done/', auth_views.PasswordChangeDoneView.as_view(template_name='accounts/password_change_done.html'), name='password_change_done'),
     path('accounts/password_reset/', auth_views.PasswordResetView.as_view(template_name='accounts/password_reset_form.html'), name='password_reset'),
@@ -43,7 +45,3 @@ urlpatterns = [
 
     path('accounts/', include('django.contrib.auth.urls')), # Pour la gestion de l'authentification Django
 ]
-
-# Servir les fichiers médias en mode développement
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -4,20 +4,21 @@
 
 {% block content %}
     <h2 class="mb-4">Suivi de Présence pour : {{ etudiant.prenom }} {{ etudiant.nom }}</h2>
-    <p><strong>Classe :</strong> {{ etudiant.classe.nom_classe|default:"Non assigné" }}</p>
+    <p><strong>Classe pour cette année :</strong> {{ inscription_courante.classe.nom_classe|default:"Non attribuée" }}</p>
     <p><strong>Année Scolaire :</strong> {{ annee_active.annee }}</p>
 
     <div class="row mb-4">
         <div class="col-md-3">
             <div class="card bg-success text-white text-center p-3">
-                <h5>Présent</h5>
+                <h5>Pointages présents</h5>
                 <p class="display-6">{{ total_jours_presents }}</p>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card bg-danger text-white text-center p-3">
-                <h5>Absent</h5>
-                <p class="display-6">{{ total_jours_absents }}</p>
+                <h5>Absences au total</h5>
+                <p class="display-6">{{ total_absents }}</p>
+                <small>Statut « Absent » : {{ total_absents_statut_absent }}</small>
             </div>
         </div>
         <div class="col-md-3">
@@ -28,12 +29,13 @@
         </div>
         <div class="col-md-3">
             <div class="card bg-info text-white text-center p-3">
-                <h5>Excusé</h5>
+                <h5>Absences excusées</h5>
                 <p class="display-6">{{ total_jours_excuses }}</p>
             </div>
         </div>
     </div>
 
+    <p class="text-muted">Le statut « Excusé » compte comme une absence. Une pièce fournie ne signifie pas que le motif a été validé.</p>
     <h3 class="mb-3">Historique Détaillé</h3>
     {% if presences %}
         <div class="table-responsive">
@@ -46,23 +48,23 @@
                         <th>Heure Début</th>
                         <th>Heure Fin</th>
                         <th>Motif</th>
-                        <th>Justificatif</th>
+                        <th>Pièce fournie</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for presence in presences %}
                         <tr>
                             <td>{{ presence.date|date:"d M Y" }}</td>
-                            <td><span class="badge bg-{% if presence.statut == 'Présent' %}success{% elif presence.statut == 'Absent' %}danger{% elif presence.statut == 'Retard' %}warning{% else %}info{% endif %}">{{ presence.statut }}</span></td>
+                            <td><span class="badge bg-{% if presence.statut == 'Présent' %}success{% elif presence.statut == 'Absent' %}danger{% elif presence.statut == 'Retard' %}warning{% else %}info{% endif %}">{% if presence.statut == 'Excusé' %}Absence excusée{% else %}{{ presence.statut }}{% endif %}</span></td>
                             <td>{{ presence.matiere.nom|default:"Général" }}</td>
                             <td>{{ presence.heure_debut_cours|date:"H:i"|default:"N/A" }}</td>
                             <td>{{ presence.heure_fin_cours|date:"H:i"|default:"N/A" }}</td>
                             <td>{{ presence.motif_absence_retard|default:"-" }}</td>
                             <td>
                                 {% if presence.justificatif_fourni %}
-                                    <i class="fas fa-check-circle text-success"></i> Oui
+                                    <i class="fas fa-check-circle text-success"></i> Fournie
                                 {% else %}
-                                    <i class="fas fa-times-circle text-danger"></i> Non
+                                    <i class="fas fa-times-circle text-danger"></i> Non fournie
                                 {% endif %}
                             </td>
                         </tr>

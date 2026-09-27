@@ -1,5 +1,5 @@
 {% extends 'dashboard/base.html' %}
-{% load static %} 
+{% load static %}
 
 {% block title %}Carte Scolaire - {{ etudiant.prenom }} {{ etudiant.nom }}{% endblock %}
 
@@ -14,7 +14,7 @@
         <div class="bg-indigo-700 p-4 text-white text-center border-b-2 border-indigo-900">
             {% if ecole.logo %}
                 <!-- Le logo est rendu ici. Utilisation d'un fallback visuel pour l'image -->
-                <img src="{{ ecole.logo.url|default:'#' }}" alt="Logo École" class="h-10 mx-auto mb-2 filter brightness-125" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <img src="{% url 'school_logo' ecole.pk %}" alt="Logo École" class="h-10 mx-auto mb-2 filter brightness-125" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                 <div class="text-3xl font-serif font-extrabold tracking-wider" style="display:none;">[LOGO]</div>
             {% endif %}
             <h4 class="text-xl font-bold mb-0 uppercase">{{ ecole.nom_etablissement }}</h4>
@@ -27,8 +27,8 @@
                 <!-- Photo de Profil -->
                 <div class="flex-shrink-0">
                     {% if etudiant.photo_profil %}
-                        <img src="{{ etudiant.photo_profil.url|default:'#' }}" 
-                             alt="Photo de Profil" 
+                        <img src="{% url 'student_photo' etudiant.pk %}"
+                             alt="Photo de Profil"
                              class="w-24 h-30 object-cover rounded-lg shadow-lg border-2 border-gray-300"
                              onerror="this.src='https://placehold.co/96x120/E5E7EB/4B5563?text=Photo';">
                     {% else %}
@@ -42,8 +42,8 @@
                 <div class="flex-grow pt-1">
                     <h5 class="text-2xl font-extrabold text-gray-900 mb-2 leading-tight">{{ etudiant.prenom }} {{ etudiant.nom }}</h5>
                     <div class="space-y-1 text-sm text-gray-700">
-                        <p><strong>Classe :</strong> <span class="font-bold text-indigo-600">{{ etudiant.classe.nom_classe if etudiant.classe else 'Non assigné' }}</span></p>
-                        <p><strong>Année :</strong> {{ annee_scolaire.annee if annee_scolaire else 'N/A' }}</p>
+                        <p><strong>Classe :</strong> <span class="font-bold text-indigo-600">{{ classe.nom_classe|default:"Non assigné" }}</span></p>
+                        <p><strong>Année :</strong> {{ annee_scolaire.annee|default:"N/A" }}</p>
                         <p><strong>Matricule :</strong> <span class="font-mono text-gray-800">{{ etudiant.numero_matricule }}</span></p>
                         <p><strong>Sexe :</strong> {{ etudiant.get_genre_display }}</p>
                         <p><strong>Né(e) le :</strong> {{ etudiant.date_naissance|date:"d M Y" }}</p>
@@ -54,8 +54,8 @@
             <!-- QR Code de Vérification -->
             <div class="text-center pt-4 border-t border-gray-200 mt-4">
                 {% if qr_code or qr_code_base64 %}
-                    <img src="{{ qr_code|default:qr_code_base64 }}" 
-                         alt="QR Code de Vérification" 
+                    <img src="{{ qr_code|default:qr_code_base64 }}"
+                         alt="QR Code de Vérification"
                          class="w-32 h-32 mx-auto rounded-md border-2 border-gray-300 p-1 bg-white shadow-inner">
                     <p class="mt-2 text-xs text-gray-500 font-medium">Scanner pour vérifier l'étudiant</p>
                 {% endif %}
@@ -64,7 +64,7 @@
             <!-- Bouton PDF (uniquement si ce n'est pas le rendu PDF lui-même) -->
             {% if not pdf %}
             <div class="text-center mt-6">
-                <a href="{% url 'carte_scolaire_pdf' etudiant.pk %}" 
+                <a href="{% url 'carte_scolaire_pdf' etudiant.pk %}"
                    class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-semibold rounded-full shadow-xl text-white bg-indigo-600 hover:bg-indigo-700 transition duration-150 ease-in-out ring-2 ring-indigo-300">
                     <svg class="w-4 h-4 me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     Télécharger la Carte PDF
@@ -77,13 +77,13 @@
         <div class="bg-gray-100 p-4 border-t-2 border-gray-200 flex justify-between items-end text-xs text-gray-600">
             <div class="text-center flex-1 pr-2">
                 {% if ecole.cachet_admin %}
-                    <img src="{{ ecole.cachet_admin.url|default:'#' }}" alt="Cachet" class="h-10 mx-auto mb-1 opacity-70" onerror="this.style.display='none';">
+                    <img src="{% url 'school_asset' ecole.pk 'cachet' %}" alt="Cachet" class="h-10 mx-auto mb-1 opacity-70" onerror="this.style.display='none';">
                 {% endif %}
                 <p class="mb-0 font-medium pt-1 mt-3">Cachet Administration</p>
             </div>
             <div class="text-center flex-1 pl-2 border-l border-gray-300">
                 {% if ecole.signature_directeur %}
-                    <img src="{{ ecole.signature_directeur.url|default:'#' }}" alt="Signature Directeur" class="h-10 mx-auto mb-1" onerror="this.style.display='none';">
+                    <img src="{% url 'school_asset' ecole.pk 'signature' %}" alt="Signature Directeur" class="h-10 mx-auto mb-1" onerror="this.style.display='none';">
                 {% endif %}
                 <p class="mb-0 font-medium pt-1 mt-3 border-t border-gray-400/50 w-3/4 mx-auto">{{ ecole.titre_signataire }}: {{ ecole.nom_signataire }}</p>
             </div>

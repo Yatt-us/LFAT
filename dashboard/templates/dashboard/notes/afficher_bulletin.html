@@ -9,7 +9,7 @@
         <div class="row">
             <div class="col-md-6">
                 <p><strong>Élève :</strong> {{ etudiant.prenom }} {{ etudiant.nom }}</p>
-                <p><strong>Classe :</strong> {{ etudiant.classe.nom_classe|default:"N/A" }}</p>
+                <p><strong>Classe :</strong> {% if inscription.annee_scolaire_id == annee_scolaire.id %}{{ inscription.classe.nom_classe|default:"Non attribuée" }}{% else %}Non disponible pour cette année{% endif %}</p>
             </div>
             <div class="col-md-6 text-md-end">
                 <p><strong>Année Scolaire :</strong> {{ annee_scolaire.annee }}</p>
@@ -93,7 +93,7 @@
     {% endif %}
 
     <div class="mt-4 text-end">
-        <a href="{% url 'generer_bulletin' %}" class="btn btn-secondary me-2"><i class="fas fa-arrow-left me-2"></i>Retour</a>
+        <a href="{% url 'detail_etudiant' etudiant.pk %}" class="btn btn-secondary me-2"><i class="fas fa-arrow-left me-2"></i>Retour</a>
         <button onclick="window.print()" class="btn btn-primary"><i class="fas fa-print me-2"></i>Imprimer le Bulletin</button>
     </div>
 {% endblock %}

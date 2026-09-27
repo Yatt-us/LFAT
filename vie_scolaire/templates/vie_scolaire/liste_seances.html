@@ -1,0 +1,41 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Appels par séance{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="h3 mb-1">Appels par séance</h1>
+    <p class="text-muted mb-0">Un pointage correspond à un cours daté. Le <a href="{% url 'liste_presences' %}">registre journalier historique</a> reste séparé.</p>
+  </div>
+  {% if peut_creer and annee %}<a class="btn btn-primary" href="{% url 'vie_scolaire:creer_seance' %}"><i class="fas fa-plus me-2" aria-hidden="true"></i>Créer une séance</a>{% endif %}
+</div>
+{% if not annee %}
+  <div class="alert alert-info">Activez une année scolaire pour afficher ses séances.</div>
+{% else %}
+  <p class="text-muted">Année scolaire : {{ annee.annee }}</p>
+  <form method="get" class="d-flex flex-wrap gap-2 align-items-end mb-4">
+    <div><label for="date-seance" class="form-label">Date</label><input id="date-seance" name="date" type="date" class="form-control" value="{{ date_filtre }}"></div>
+    <button type="submit" class="btn btn-outline-primary">Filtrer</button>
+    {% if date_filtre %}<a href="{% url 'vie_scolaire:liste_seances' %}" class="btn btn-outline-secondary">Effacer</a>{% endif %}
+  </form>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead><tr><th>Date</th><th>Classe</th><th>Matière</th><th>Enseignant</th><th>Horaire</th><th>Pointages</th><th></th></tr></thead>
+      <tbody>
+        {% for seance in seances %}
+          <tr>
+            <td>{{ seance.date|date:"d/m/Y" }}</td>
+            <td>{{ seance.classe.nom_classe }}</td>
+            <td>{{ seance.programme.matiere.nom }}</td>
+            <td>{{ seance.enseignant }}</td>
+            <td>{{ seance.heure_debut|time:"H:i" }}–{{ seance.heure_fin|time:"H:i" }}</td>
+            <td>{{ seance.nb_pointages }}</td>
+            <td><a class="btn btn-sm btn-outline-primary" href="{% url 'vie_scolaire:pointage_seance' seance.pk %}">Ouvrir l’appel</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">Aucune séance pour ce filtre.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+{% endblock %}

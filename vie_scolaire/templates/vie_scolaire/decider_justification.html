@@ -1,0 +1,21 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Décider d’une justification{% endblock %}
+{% block content %}
+<div style="max-width: 42rem">
+  <h1 class="h3 mb-2">Décider d’une justification</h1>
+  <p class="text-muted">{{ justification.pointage.inscription.etudiant }} · {{ justification.pointage.seance.classe.nom_classe }} · {{ justification.pointage.seance.date|date:"d/m/Y" }}</p>
+  <div class="card border-0 shadow-sm p-4 mb-3"><strong>Motif communiqué</strong><p class="mb-0">{{ justification.motif|linebreaksbr }}</p></div>
+  {% if justification.etat == 'en_attente' %}
+    <form method="post" class="card border-0 shadow-sm p-4">
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="mb-3"><label for="{{ form.decision.id_for_label }}" class="form-label fw-semibold">Décision</label>{{ form.decision }}{{ form.decision.errors }}</div>
+      <div class="mb-3"><label for="{{ form.commentaire_decision.id_for_label }}" class="form-label fw-semibold">Commentaire</label>{{ form.commentaire_decision }}{{ form.commentaire_decision.errors }}</div>
+      <button type="submit" class="btn btn-primary">Enregistrer la décision</button>
+    </form>
+  {% else %}
+    <p class="alert alert-info">Décision déjà enregistrée : {{ justification.get_etat_display }}.</p>
+  {% endif %}
+  <a class="btn btn-outline-secondary mt-3" href="{% url 'vie_scolaire:pointage_seance' justification.pointage.seance_id %}">Retour à l’appel</a>
+</div>
+{% endblock %}

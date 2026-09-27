@@ -1,6 +1,8 @@
 {% extends 'dashboard/base.html' %}
+{% load static %}
 
 {% block title %}Liste des Matières{% endblock %}
+{% block extra_css %}<link href="{% static 'dashboard/css/legacy-lists.css' %}" rel="stylesheet">{% endblock %}
 
 {% block content %}
     <h2 class="mb-4">Liste des Matières</h2>
@@ -14,8 +16,8 @@
         </a>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-striped table-hover">
+    <div class="table-responsive legacy-table-container">
+        <table class="table table-striped table-hover legacy-card-table">
             <thead>
                 <tr>
                     <th>Nom de la Matière</th>
@@ -26,16 +28,18 @@
             <tbody>
                 {% for matiere in matieres %}
                     <tr>
-                        <td>{{ matiere.nom }}</td>
-                        <td>{{ matiere.code_matiere|default:"N/A" }}</td>
-                        <td>
-                            <a href="{% url 'modifier_matiere' matiere.pk %}" class="btn btn-warning btn-sm me-1" data-bs-toggle="tooltip" title="Modifier"><i class="fas fa-edit"></i></a>
-                            <a href="{% url 'supprimer_matiere' matiere.pk %}" class="btn btn-danger btn-sm me-1" data-bs-toggle="tooltip" title="Supprimer"><i class="fas fa-trash-alt"></i></a>
-                            <a href="{% url 'liste_notes_par_classe_matiere' %}?matiere_id={{ matiere.pk }}" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Voir les Notes de cette Matière"><i class="fas fa-book"></i></a>
+                        <td data-label="Matière">{{ matiere.nom }}</td>
+                        <td data-label="Code">{{ matiere.code_matiere|default:"N/A" }}</td>
+                        <td data-label="Actions">
+                            <div class="legacy-actions">
+                            <a href="{% url 'modifier_matiere' matiere.pk %}" class="btn btn-warning btn-sm me-1" data-bs-toggle="tooltip" title="Modifier" aria-label="Modifier {{ matiere.nom }}"><i class="fas fa-edit" aria-hidden="true"></i><span class="legacy-action-text">Modifier</span></a>
+                            <a href="{% url 'supprimer_matiere' matiere.pk %}" class="btn btn-danger btn-sm me-1" data-bs-toggle="tooltip" title="Supprimer" aria-label="Supprimer {{ matiere.nom }}"><i class="fas fa-trash-alt" aria-hidden="true"></i><span class="legacy-action-text">Supprimer</span></a>
+                            <a href="{% url 'liste_notes_par_classe_matiere' %}?matiere_id={{ matiere.pk }}" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Voir les Notes de cette Matière" aria-label="Voir les notes de {{ matiere.nom }}"><i class="fas fa-book" aria-hidden="true"></i><span class="legacy-action-text">Notes</span></a>
+                            </div>
                         </td>
                     </tr>
                 {% empty %}
-                    <tr>
+                    <tr class="legacy-empty-row">
                         <td colspan="3">Aucune matière enregistrée pour le moment.</td>
                     </tr>
                 {% endfor %}

@@ -10,9 +10,11 @@
 </h2>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
+    {% if peut_gerer_edt %}
     <a href="{% url 'creer_emploi_du_temps' %}" class="btn btn-success">
         <i class="fas fa-plus-circle me-2"></i>Ajouter un Bloc de Cours
     </a>
+    {% endif %}
 
     {# Formulaire de filtre #}
     <form method="GET" action="{% url 'liste_emplois_du_temps' %}" class="d-flex align-items-center bg-light p-2 rounded shadow-sm">
@@ -83,11 +85,13 @@
                                                                 <strong class="text-dark">{{ bloc.matiere.nom }}</strong><br>
                                                                 <small class="text-secondary">{{ bloc.enseignant.prenom }} {{ bloc.enseignant.nom }}</small>
                                                                 <br>
+                                                                {% if peut_gerer_edt %}
                                                                 <a href="{% url 'modifier_emploi_du_temps' bloc.pk %}" 
                                                                    class="btn btn-warning btn-sm mt-1"
                                                                    data-bs-toggle="tooltip" title="Modifier ce bloc">
                                                                     <i class="fas fa-edit"></i>
                                                                 </a>
+                                                                {% endif %}
                                                             </div>
                                                         {% else %}
                                                             <span class="text-muted small">- Libre -</span>
@@ -101,18 +105,22 @@
                             </table>
                         </div>
 
+                        {% if peut_gerer_edt %}
                         <div class="text-end mt-3">
                             <a href="{% url 'creer_emploi_du_temps_pour_classe' classe.pk %}" class="btn btn-outline-success">
                                 <i class="fas fa-plus me-2"></i>Ajouter un nouveau bloc pour {{ classe.nom_classe }}
                             </a>
                         </div>
+                        {% endif %}
                     {% else %}
                         <p class="alert alert-info text-center">Aucun emploi du temps défini pour cette classe pour l'année active.</p>
+                        {% if peut_gerer_edt %}
                         <div class="text-center">
                             <a href="{% url 'creer_emploi_du_temps_pour_classe' classe.pk %}" class="btn btn-success">
                                 <i class="fas fa-plus-circle me-2"></i>Créer l'EDT pour {{ classe.nom_classe }}
                             </a>
                         </div>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
@@ -122,7 +130,7 @@
 {% else %}
     <p class="alert alert-info p-4">
         <i class="fas fa-info-circle me-2"></i>Aucun emploi du temps n'a encore été créé pour l'année scolaire active.
-        <a href="{% url 'creer_emploi_du_temps' %}" class="alert-link fw-bold">Commencez la création ici.</a>
+        {% if peut_gerer_edt %}<a href="{% url 'creer_emploi_du_temps' %}" class="alert-link fw-bold">Commencez la création ici.</a>{% endif %}
     </p>
 {% endif %}
 {% endblock %}

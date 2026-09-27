@@ -1,0 +1,3 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Vérification du certificat</title></head>
+<body><main><h1>Vérification du certificat de fréquentation</h1><p>Statut : {% if valide %}Valide{% else %}Annulé ou archivé{% endif %}</p><p>Établissement : {{ certificat.ecole.nom_etablissement }}</p><p>Élève : {{ certificat.etudiant.prenom }} {{ certificat.etudiant.nom }}</p><p>Année scolaire : {{ certificat.annee_scolaire.annee }}</p><p>Numéro : {{ certificat.numero_certificat }}</p><p>Date de délivrance : {{ certificat.date_delivrance|date:"d/m/Y" }}</p></main></body></html>

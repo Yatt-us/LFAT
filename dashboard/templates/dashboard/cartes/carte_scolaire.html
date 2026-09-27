@@ -191,7 +191,7 @@
         <!-- ===================== EN-TÊTE ===================== -->
         <div class="header">
             {% if ecole.logo %}
-                <img src="{{ ecole.logo.url }}" alt="Logo" class="logo-img">
+                <img src="{{ logo_source }}" alt="Logo" class="logo-img">
             {% endif %}
             
             <p style="margin:0; font-size:11px; font-weight:700;">
@@ -211,7 +211,7 @@
             <!-- Photo -->
             <div class="photo-container">
                 {% if etudiant.photo_profil %}
-                    <img src="{{ etudiant.photo_profil.url }}" alt="Photo">
+                    <img src="{{ photo_source }}" alt="Photo">
                 {% else %}
                     <div class="photo-placeholder">PHOTO OFFICIELLE</div>
                 {% endif %}
@@ -224,8 +224,8 @@
                 <p class="info-detail">
                     <strong>Classe :</strong> 
                     <span class="classe-name">
-                        {% if etudiant.classe %}
-                            {{ etudiant.classe.nom_classe }}
+                        {% if classe %}
+                            {{ classe.nom_classe }}
                         {% else %}
                             Non assigné
                         {% endif %}
@@ -261,7 +261,7 @@
             <!-- Cachet -->
             <div class="footer-item">
                 {% if ecole.cachet_admin %}
-                    <img src="{{ ecole.cachet_admin.url }}" alt="Cachet">
+                    <img src="{{ cachet_source }}" alt="Cachet">
                 {% endif %}
                 <div class="signature-line"></div>
                 <p>Cachet de l'établissement</p>
@@ -270,7 +270,7 @@
             <!-- Signature Directeur -->
             <div class="footer-item">
                 {% if ecole.signature_directeur %}
-                    <img src="{{ ecole.signature_directeur.url }}" alt="Signature Directeur">
+                    <img src="{{ signature_source }}" alt="Signature Directeur">
                 {% endif %}
                 <div class="signature-line"></div>
                 <p>

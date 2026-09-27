@@ -1,0 +1,23 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Vue générale · Administration de la plateforme</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'dashboard/favicon.svg' %}">
+  <link rel="stylesheet" href="{% static 'dashboard/admin-angular/styles.css' %}">
+</head>
+<body>
+  <platform-admin-root>
+    <main style="max-width: 720px; margin: 8vh auto; padding: 32px; font: 16px system-ui, sans-serif; color: #172844">
+      <h1>Administration de la plateforme</h1>
+      <p>Chargement du tableau de bord…</p>
+      <p><a href="{{ platform_dashboard_data.links.schools }}">Gérer les établissements</a> · <a href="{{ platform_dashboard_data.links.requests }}">Voir les demandes</a></p>
+    </main>
+  </platform-admin-root>
+  {{ platform_dashboard_data|json_script:"platform-admin-data" }}
+  <script type="module" src="{% static 'dashboard/admin-angular/main.js' %}"></script>
+</body>
+</html>

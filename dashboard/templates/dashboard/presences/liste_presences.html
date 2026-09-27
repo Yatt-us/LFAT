@@ -28,6 +28,8 @@
         </div>
     </form>
 
+    <p class="alert alert-light border">Pointages d’absence : <strong>{{ total_absences }}</strong> · statut « Absent » : {{ absences_statut_absent }} · absences excusées : {{ absences_excusees }}. Une pièce fournie ne signifie pas que le motif a été validé.</p>
+
     <!-- 🔹 Tableau des présences -->
     <div class="table-responsive">
         <table class="table table-striped table-bordered align-middle">
@@ -38,7 +40,8 @@
                     <th>Classe</th>
                     <th>Date</th>
                     <th>Statut</th>
-                    <th>Remarque</th>
+                    <th>Motif</th>
+                    <th>Pièce fournie</th>
                 </tr>
             </thead>
             <tbody>
@@ -49,13 +52,14 @@
                             <td>{{ presence.etudiant.nom }} {{ presence.etudiant.prenom }}</td>
                             <td>{{ presence.classe.nom_classe }}</td>
                             <td>{{ presence.date|date:"d/m/Y" }}</td>
-                            <td>{{ presence.statut }}</td>
-                            <td>{{ presence.remarque|default:"-" }}</td>
+                            <td>{% if presence.statut == 'Excusé' %}Absence excusée{% else %}{{ presence.statut }}{% endif %}</td>
+                            <td>{{ presence.motif_absence_retard|default:"-" }}</td>
+                            <td>{% if presence.justificatif_fourni %}Fournie{% else %}Non fournie{% endif %}</td>
                         </tr>
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="6" class="text-center">Aucune présence trouvée pour les filtres sélectionnés.</td>
+                        <td colspan="7" class="text-center">Aucune présence trouvée pour les filtres sélectionnés.</td>
                     </tr>
                 {% endif %}
             </tbody>

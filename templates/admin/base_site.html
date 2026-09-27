@@ -1,0 +1,44 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | LFAT · Administration{% endblock %}
+
+{% block branding %}
+<div id="site-name">
+  <a href="{% url 'admin:index' %}" aria-label="Accueil de l'administration LFAT">
+    <span class="platform-brand-mark" aria-hidden="true">L</span>
+    <span class="platform-brand-copy"><strong>LFAT</strong><small>Administration</small></span>
+  </a>
+</div>
+{% if user.is_anonymous %}{% include "admin/color_theme_toggle.html" %}{% endif %}
+{% endblock %}
+
+{% block usertools %}
+{% if has_permission %}
+<div id="user-tools">
+  <span class="platform-admin-user">
+    <span class="platform-admin-avatar" aria-hidden="true">{{ user.get_username|first|upper }}</span>
+    <span><small>{% translate "Connecté en tant que" %}</small><strong>{% firstof user.get_short_name user.get_username %}</strong></span>
+  </span>
+  <nav class="platform-admin-actions" aria-label="Actions du compte">
+    {% if site_url %}<a href="{{ site_url }}">{% translate "View site" %}</a>{% endif %}
+    {% if user.is_active and user.is_staff %}
+      {% url 'django-admindocs-docroot' as docsroot %}
+      {% if docsroot %}<a href="{{ docsroot }}">{% translate "Documentation" %}</a>{% endif %}
+    {% endif %}
+    {% if user.has_usable_password %}<a href="{% url 'admin:password_change' %}">{% translate "Change password" %}</a>{% endif %}
+    <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
+      {% csrf_token %}
+      <button type="submit">{% translate "Log out" %}</button>
+    </form>
+    {% include "admin/color_theme_toggle.html" %}
+  </nav>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block responsive %}
+  {{ block.super }}
+  <link rel="icon" type="image/svg+xml" href="{% static 'dashboard/favicon.svg' %}">
+  <link rel="stylesheet" href="{% static 'dashboard/css/platform_admin.css' %}">
+{% endblock %}

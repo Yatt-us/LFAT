@@ -1,57 +1,35 @@
 {% extends 'dashboard/base.html' %}
-{% load static %} {# Good practice to include if using static files #}
-
-{% block title %}Paiements Payés{% endblock %}
-
+{% load static %}
+{% block title %}Encaissements{% endblock %}
+{% block extra_css %}<link href="{% static 'dashboard/css/legacy-lists.css' %}" rel="stylesheet">{% endblock %}
 {% block content %}
-    <h2 class="mb-4">Paiements Effectués (Année Scolaire Active : <span class="text-primary">{{ annee_active.annee|default:"Non définie" }}</span>)</h2>
-
-    {% if paiements_payes %} {# Changed variable name to paiements_payes #}
-        <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle">
-                <thead>
-                    <tr>
-                        <th scope="col">Élève</th>
-                        <th scope="col">Classe</th>
-                        <th scope="col">Motif</th>
-                        <th scope="col">Montant Payé</th> {# Only show Montant Payé here #}
-                        <th scope="col">Statut</th>
-                        <th scope="col">Date Paiement</th>
-                        <th scope="col">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for paiement in paiements_payes %} {# Changed loop variable #}
-                        <tr>
-                            <td><a href="{% url 'detail_etudiant' paiement.etudiant.pk %}" class="text-decoration-none text-dark fw-bold">{{ paiement.etudiant.prenom }} {{ paiement.etudiant.nom }}</a></td>
-                            <td>{{ paiement.etudiant.classe.nom_classe|default:"Non assigné" }}</td>
-                            <td>{{ paiement.motif_paiement }}</td>
-                            <td>{{ paiement.montant|floatformat:0 }} FCFA</td>
-                            <td><span class="badge bg-success">{{ paiement.statut }}</span></td> {# Always green badge for paid #}
-                            <td>{{ paiement.date_paiement|date:"d M Y" }}</td>
-                            <td>
-                                <a href="{% url 'modifier_paiement' paiement.pk %}" class="btn btn-warning btn-sm me-1" data-bs-toggle="tooltip" title="Modifier"><i class="fas fa-edit"></i></a>
-                                <a href="{% url 'supprimer_paiement' paiement.pk %}" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" title="Supprimer"><i class="fas fa-trash-alt"></i></a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    {% else %}
-        <div class="alert alert-info" role="alert"> {# Changed to info alert #}
-            <i class="fas fa-info-circle me-2"></i>
-            Aucun paiement complet n'a été enregistré pour l'année scolaire active.
-        </div>
-    {% endif %}
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-</script>
+<div class="container my-4">
+  <h1 class="h3">Encaissements — {{ annee_active.annee|default:"Aucune année active" }}</h1>
+  <div class="table-responsive legacy-table-container">
+    <table class="table table-striped align-middle legacy-card-table">
+      <thead><tr><th>Élève</th><th>Frais</th><th>Montant reçu</th><th>Date</th><th>Mode</th><th>Reçu</th><th></th></tr></thead>
+      <tbody>
+        {% for paiement in paiements_payes %}
+          <tr>
+            <td data-label="Élève"><a href="{% url 'detail_etudiant' paiement.etudiant.pk %}">{{ paiement.etudiant.prenom }} {{ paiement.etudiant.nom }}</a></td>
+            <td data-label="Frais">{{ paiement.motif_paiement }}</td>
+            <td data-label="Montant reçu">{{ paiement.montant|floatformat:0 }} FCFA</td>
+            <td data-label="Date">{{ paiement.date_paiement|date:"d/m/Y" }}</td>
+            <td data-label="Mode">{{ paiement.mode_paiement }}</td>
+            <td data-label="N° reçu">{{ paiement.recu_numero|default:"—" }}</td>
+            <td data-label="Actions">
+              <div class="legacy-actions">
+              <a href="{% url 'generer_recu_paiement' paiement.pk %}" class="btn btn-sm btn-outline-success">Reçu</a>
+              <a href="{% url 'modifier_paiement' paiement.pk %}" class="btn btn-sm btn-outline-primary">Corriger</a>
+              <a href="{% url 'supprimer_paiement' paiement.pk %}" class="btn btn-sm btn-outline-danger">Annuler</a>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr class="legacy-empty-row"><td colspan="7">Aucun encaissement enregistré.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

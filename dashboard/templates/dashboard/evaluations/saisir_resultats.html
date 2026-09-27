@@ -1,0 +1,37 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Résultats de {{ evaluation.titre }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="h3 mb-1">{{ evaluation.titre }}</h1>
+    <p class="text-muted mb-0">{{ evaluation.programme.classe.nom_classe }} · {{ evaluation.programme.matiere.nom }} · {{ evaluation.periode_evaluation }} · {{ evaluation.date_evaluation|date:'d/m/Y' }}</p>
+  </div>
+  <a href="{{ retour_url }}" class="btn btn-outline-secondary">Retour aux évaluations</a>
+</div>
+<div class="alert alert-info">Note sur {{ evaluation.bareme|floatformat:2 }} avec un poids de {{ evaluation.poids|floatformat:2 }}. Une case de note vide conserve le résultat existant. Cochez « Effacer » pour annuler une note saisie par erreur ; le bulletin la considérera manquante.</div>
+<form method="post" novalidate class="card shadow-sm">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert alert-danger m-3">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light"><tr><th>Élève</th><th>Matricule</th><th>Résultat existant</th><th>Note sur {{ evaluation.bareme|floatformat:2 }}</th></tr></thead>
+      <tbody>
+      {% for row in rows %}
+        <tr>
+          <td>{{ row.inscription.etudiant.prenom }} {{ row.inscription.etudiant.nom }}</td>
+          <td>{{ row.inscription.etudiant.numero_matricule|default:'—' }}</td>
+          <td>{% if row.resultat %}{% if row.resultat.annule %}<span class="text-muted">Annulé (ancienne note : {{ row.resultat.valeur|floatformat:2 }})</span>{% else %}{{ row.resultat.valeur|floatformat:2 }}{% endif %}{% else %}<span class="text-muted">Non saisi</span>{% endif %}</td>
+          <td style="min-width:11rem">
+            {{ row.field }}{% for error in row.field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            {% if row.resultat and not row.resultat.annule %}<label class="form-check small mt-2">{{ row.clear_field }} <span class="form-check-label">Effacer ce résultat</span></label>{% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="text-center text-muted py-4">Aucun élève inscrit dans cette classe pour l'année active.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if rows %}<div class="card-footer text-end"><button class="btn btn-primary" type="submit">Enregistrer les résultats</button></div>{% endif %}
+</form>
+{% endblock %}

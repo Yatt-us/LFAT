@@ -1,155 +1,25 @@
 {% extends 'dashboard/base.html' %}
-{% load static %}
-
-{% block title %}Ajouter un Paiement{% endblock %}
-
+{% block title %}Enregistrer un paiement{% endblock %}
 {% block content %}
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-file-invoice-dollar me-2 text-success"></i> Enregistrer un Nouveau Paiement
-        </h1>
+<div class="container my-4">
+  <h1 class="h3">Enregistrer un paiement</h1>
+  <p class="text-muted">{{ etudiant.prenom }} {{ etudiant.nom }} — {{ annee_active.annee }}</p>
+  <div class="alert alert-info">Le montant dû se définit dans les frais scolaires. Ce formulaire enregistre uniquement un encaissement.</div>
+  <form method="post" class="card card-body shadow-sm">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      <div class="mb-3">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+      </div>
+    {% endfor %}
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-success">Enregistrer l'encaissement</button>
+      <a href="{% url 'creer_creance_scolaire' etudiant.pk %}" class="btn btn-outline-primary">Ajouter un frais</a>
+      <a href="{% url 'detail_etudiant' etudiant.pk %}" class="btn btn-secondary">Annuler</a>
     </div>
-
-    {# Affichage des messages Django #}
-    {% if messages %}
-        <div class="mb-4">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    <div class="card shadow-lg mb-4 border-0">
-        <div class="card-header py-3 bg-success text-white">
-            <h5 class="m-0 fw-bold">
-                <i class="fas fa-user-tag me-2"></i> Enregistrement pour : {{ etudiant.prenom }} {{ etudiant.nom }}
-            </h5>
-        </div>
-        <div class="card-body p-5">
-            <form method="post" action="{% url 'ajouter_paiement' etudiant.pk %}" class="row g-4">
-                {% csrf_token %}
-
-                {# Affichage des erreurs globales du formulaire #}
-                {% if form.non_field_errors %}
-                    <div class="col-12">
-                        <div class="alert alert-danger" role="alert">
-                            <strong>Erreur(s) :</strong>
-                            {% for error in form.non_field_errors %}
-                                <p class="mb-0">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
-
-                {# Bloc 1: Montants et Motif (Mis en évidence) #}
-                <div class="col-lg-6">
-                    <div class="p-4 border border-success rounded h-100 bg-light-green">
-                        <h6 class="text-success border-bottom pb-2 mb-3 fw-bold">
-                            <i class="fas fa-coins me-2"></i> Détails Financiers
-                        </h6>
-
-                        {# Champ Montant Payé #}
-                        <div class="mb-3">
-                            <label for="{{ form.montant.id_for_label }}" class="form-label fw-bold"><i class="fas fa-wallet me-2"></i> {{ form.montant.label }}</label>
-                            {{ form.montant }}
-                            {% if form.montant.errors %}
-                                <div class="text-danger small">{% for error in form.montant.errors %}{{ error }}{% endfor %}</div>
-                            {% endif %}
-                        </div>
-
-                        {# Champ Montant Total Dû #}
-                        <div class="mb-3">
-                            <label for="{{ form.montant_du.id_for_label }}" class="form-label fw-bold"><i class="fas fa-hand-holding-usd me-2"></i> {{ form.montant_du.label }}</label>
-                            {{ form.montant_du }}
-                            <div class="form-text text-muted small">Indiquez le montant total attendu pour ce motif de paiement.</div>
-                            {% if form.montant_du.errors %}
-                                <div class="text-danger small">{% for error in form.montant_du.errors %}{{ error }}{% endfor %}</div>
-                            {% endif %}
-                        </div>
-
-                        {# Champ Motif du Paiement #}
-                        <div class="mb-0">
-                            <label for="{{ form.motif_paiement.id_for_label }}" class="form-label fw-bold"><i class="fas fa-list-alt me-2"></i> {{ form.motif_paiement.label }}</label>
-                            {{ form.motif_paiement }}
-                            {% if form.motif_paiement.errors %}
-                                <div class="text-danger small">{% for error in form.motif_paiement.errors %}{{ error }}{% endfor %}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                {# Bloc 2: Logistique (Date, Mode, Statut, Reçu) #}
-                <div class="col-lg-6">
-                    <div class="p-4 border rounded h-100 bg-light">
-                        <h6 class="text-primary border-bottom pb-2 mb-3 fw-bold">
-                            <i class="fas fa-clipboard-list me-2"></i> Informations de Transaction
-                        </h6>
-
-                        {# Champ Date du Paiement #}
-                        <div class="mb-3">
-                            <label for="{{ form.date_paiement.id_for_label }}" class="form-label fw-bold"><i class="fas fa-calendar-alt me-2"></i> {{ form.date_paiement.label }}</label>
-                            {{ form.date_paiement }}
-                            {% if form.date_paiement.errors %}
-                                <div class="text-danger small">{% for error in form.date_paiement.errors %}{{ error }}{% endfor %}</div>
-                            {% endif %}
-                        </div>
-                        
-                        {# Champ Mode de Paiement #}
-                        <div class="mb-3">
-                            <label for="{{ form.mode_paiement.id_for_label }}" class="form-label fw-bold"><i class="fas fa-credit-card me-2"></i> {{ form.mode_paiement.label }}</label>
-                            {{ form.mode_paiement }}
-                            {% if form.mode_paiement.errors %}
-                                <div class="text-danger small">{% for error in form.mode_paiement.errors %}{{ error }}{% endfor %}</div>
-                            {% endif %}
-                        </div>
-
-                        {# Champ Statut du Paiement #}
-                        <div class="mb-3">
-                            <label for="{{ form.statut.id_for_label }}" class="form-label fw-bold"><i class="fas fa-check-circle me-2"></i> {{ form.statut.label }}</label>
-                            {{ form.statut }}
-                            {% if form.statut.errors %}
-                                <div class="text-danger small">{% for error in form.statut.errors %}{{ error }}{% endfor %}</div>
-                            {% endif %}
-                        </div>
-
-                        {# Champ Numéro de Reçu #}
-                        <div class="mb-0">
-                            <label for="{{ form.recu_numero.id_for_label }}" class="form-label fw-bold"><i class="fas fa-hashtag me-2"></i> {{ form.recu_numero.label }}</label>
-                            {{ form.recu_numero }}
-                            {% if form.recu_numero.errors %}
-                                <div class="text-danger small">{% for error in form.recu_numero.errors %}{{ error }}{% endfor %}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                {# Champs cachés ou gérés par la vue #}
-                <div class="d-none">
-                    {% if form.etudiant %}{{ form.etudiant }}{% endif %}
-                    {% if form.annee_scolaire %}{{ form.annee_scolaire }}{% endif %}
-                    {% if form.enregistre_par %}{{ form.enregistre_par }}{% endif %}
-                </div>
-
-                {# Boutons d'action #}
-                <div class="col-12 mt-5 border-top pt-4">
-                    <button type="submit" class="btn btn-success btn-lg me-3 shadow-lg">
-                        <i class="fas fa-check-circle me-2"></i> Finaliser l'Enregistrement
-                    </button>
-                    <a href="{% url 'detail_etudiant' etudiant.pk %}" class="btn btn-secondary btn-lg shadow-sm">
-                        <i class="fas fa-arrow-left me-2"></i> Annuler et Retour au Dossier
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    {# CSS personnalisé pour le fond vert clair, si nécessaire #}
-    <style>
-        .bg-light-green {
-            background-color: #f0fff4 !important; /* Vert très clair */
-        }
-    </style>
+  </form>
+</div>
 {% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Modèles de documents{% endblock %}
+{% block content %}
+<div class="container py-3">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">Modèles de documents</h1>
+      <p class="text-muted mb-0">Configurez chaque plan une fois. Il restera disponible pour votre école jusqu'à sa prochaine modification.</p>
+    </div>
+    <a href="{% url 'ecole_settings' %}" class="btn btn-outline-secondary">Paramètres de l'école</a>
+  </div>
+
+  <section aria-labelledby="standards-title" class="mb-4">
+    <h2 id="standards-title" class="h5">Documents scolaires</h2>
+    <div class="row g-3">
+      {% for item in standards %}
+        <div class="col-md-6">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                <h3 class="h6 mb-1">{{ item.modele.get_type_document_display }}</h3>
+                {% if item.enregistre %}
+                  <span class="badge bg-success">Personnalisé</span>
+                {% else %}
+                  <span class="badge bg-secondary">Plan par défaut</span>
+                {% endif %}
+              </div>
+              <p class="text-muted small mb-3">{{ item.modele.titre }}</p>
+              <a href="{% url 'modifier_modele_document' item.type %}" class="btn btn-sm btn-outline-primary">Configurer et prévisualiser</a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section aria-labelledby="autres-title">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+      <h2 id="autres-title" class="h5 mb-0">Autres documents administratifs</h2>
+      <a href="{% url 'creer_modele_document' %}" class="btn btn-primary">Créer un modèle</a>
+    </div>
+    <p class="text-muted small">Chaque modèle créé ici peut ensuite être émis depuis le dossier d'un élève. Désactivez un modèle pour le retirer de ce choix tout en gardant son plan.</p>
+    <div class="list-group">
+      {% for modele in libres %}
+        <div class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <div>
+            <strong>{{ modele.titre }}</strong>
+            {% if modele.actif %}
+              <span class="badge bg-success ms-1">Disponible</span>
+            {% else %}
+              <span class="badge bg-secondary ms-1">Désactivé</span>
+            {% endif %}
+            <div class="text-muted small">Mis à jour le {{ modele.modifie_le|date:"d/m/Y à H:i" }}</div>
+          </div>
+          <a href="{% url 'modifier_modele_document_libre' modele.pk %}" class="btn btn-sm btn-outline-primary">Modifier le plan</a>
+        </div>
+      {% empty %}
+        <div class="list-group-item text-muted">Aucun autre modèle créé pour cette école.</div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

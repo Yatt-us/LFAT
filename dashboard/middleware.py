@@ -1,6 +1,7 @@
 from django.shortcuts import redirect
 from django.contrib import messages
 from django.urls import reverse
+from .tenant import school_for_user
 
 class CheckEcoleSubscriptionMiddleware:
     """
@@ -21,6 +22,9 @@ class CheckEcoleSubscriptionMiddleware:
             reverse('login'),
             reverse('logout'),
             reverse('initier_paiement'),
+            '/verifier/carte/',
+            '/verifier/certificat/',
+            '/verifier/document/',
             '/admin/login/',
             '/admin/',
         ]
@@ -30,16 +34,15 @@ class CheckEcoleSubscriptionMiddleware:
             return self.get_response(request)
 
         if request.user.is_authenticated:
-            profile = getattr(request.user, 'profile', None)
-            ecole = getattr(profile, 'ecole', None)
+            ecole = school_for_user(request.user)
 
             if ecole:
-                # Si la période d'essai est expirée et que l'école n'a pas payé
-                if hasattr(ecole, 'periode_essai_expiree') and ecole.periode_essai_expiree() and not ecole.est_active:
+                # L'accès dépend de l'état d'abonnement, pas d'un simple indicateur actif.
+                if not ecole.peut_utiliser_systeme():
                     messages.warning(
                         request,
-                        "⛔ Votre période d'essai gratuite est terminée. "
-                        "Veuillez effectuer le paiement pour continuer à utiliser le système."
+                        "L’accès à votre établissement est temporairement indisponible. "
+                        "Consultez l’état de votre abonnement sur cette page."
                     )
                     return redirect('initier_paiement')
 

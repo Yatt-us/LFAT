@@ -5,19 +5,7 @@
 <h2>Recherche Globale d'Étudiants</h2>
 
 <form method="get" class="mb-3 d-flex gap-2 align-items-center flex-wrap">
-    {# Sélection de l'école si plusieurs écoles #}
-    {% if user.ecoles.all %}
-        <select name="ecole_id" class="form-select" style="width:auto;">
-            <option value="">Toutes les écoles</option>
-            {% for ecole in user.ecoles.all %}
-                <option value="{{ ecole.id }}" {% if ecole.id|stringformat:"s" == request.GET.ecole_id %}selected{% endif %}>
-                    {{ ecole.nom_etablissement }}
-                </option>
-            {% endfor %}
-        </select>
-    {% endif %}
-
-    <input type="text" name="q" value="{{ query|default_if_none:'' }}" placeholder="Nom, prénom, matricule, classe ou paiement..." class="form-control" required>
+    <input type="text" name="q" value="{{ query|default_if_none:'' }}" placeholder="Nom, prénom, matricule ou classe de l'année active..." class="form-control" required>
     <button type="submit" class="btn btn-primary">Rechercher</button>
 </form>
 
@@ -28,12 +16,9 @@
             <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
                 <div>
                     <strong>{{ etudiant.nom }} {{ etudiant.prenom }}</strong><br>
-                    Classe : {{ etudiant.classe.nom_classe|default:"N/A" }}<br>
+                    Classe{% if annee_active %} ({{ annee_active.annee }}){% endif %} : {{ etudiant.classe_courante|default:"Aucune classe pour l'année active" }}<br>
                     Matricule : {{ etudiant.numero_matricule }}<br>
                     {% if etudiant.ecole %}École : {{ etudiant.ecole.nom_etablissement }}<br>{% endif %}
-                    {% if etudiant.total_paye or etudiant.total_du %}
-                        Paiements : Payé {{ etudiant.total_paye|default:0 }} FCFA / Restant {{ etudiant.total_du|default:0 }} FCFA
-                    {% endif %}
                 </div>
                 <div class="d-flex gap-2 mt-2 mt-md-0">
                     <a href="{% url 'detail_etudiant' etudiant.id %}" class="btn btn-sm btn-outline-secondary">Voir</a>

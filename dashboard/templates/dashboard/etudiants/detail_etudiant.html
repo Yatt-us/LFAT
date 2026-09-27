@@ -1,425 +1,252 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
-
-{% block title %}Détails de l'Élève : {{ etudiant.prenom }} {{ etudiant.nom }}{% endblock %}
-
+{% block title %}Dossier élève — {{ etudiant.prenom }} {{ etudiant.nom }}{% endblock %}
 {% block content %}
-    <!-- EN-TÊTE ET ACTIONS PRINCIPALES -->
-    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-secondary pb-3">
-        <h2 class="mb-0 text-primary fw-light">
-            <i class="fas fa-id-card-alt me-3"></i> Dossier Élève : 
-            <span class="fw-bold text-dark">{{ etudiant.prenom }} {{ etudiant.nom }}</span>
-        </h2>
-        <div class="d-flex">
-            <!-- Bouton Carte Scolaire -->
-            <a href="{% url 'verifier_etudiant' etudiant.pk %}" class="btn btn-info me-2 fw-bold shadow-sm">
-                <i class="fas fa-address-card me-2"></i>Carte Scolaire
-            </a>
-            <!-- Bouton Modifier -->
-            <a href="{% url 'modifier_etudiant' etudiant.pk %}" class="btn btn-warning me-2 fw-bold shadow-sm">
-                <i class="fas fa-edit me-2"></i>Modifier
-            </a>
-            <!-- Bouton Supprimer -->
-            <button type="button" class="btn btn-danger shadow-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
-                <i class="fas fa-trash-alt me-2"></i>Supprimer
-            </button>
-        </div>
+<div class="container my-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <h1 class="h3">Dossier de {{ etudiant.prenom }} {{ etudiant.nom }}</h1>
+    <div class="d-flex flex-wrap gap-2">
+      {% if can_manage_enrollment %}
+        {% if annee_active %}
+          <a href="{% url 'inscrire_etudiant' etudiant.pk %}" class="btn btn-outline-primary">{% if inscription_courante %}Modifier l'inscription annuelle{% else %}Inscrire à l'année active{% endif %}</a>
+        {% endif %}
+        <a href="{% url 'modifier_etudiant' etudiant.pk %}" class="btn btn-outline-secondary">Modifier le dossier</a>
+      {% endif %}
+      {% if can_archive %}
+        <a href="{% url 'supprimer_etudiant' etudiant.pk %}" class="btn btn-outline-danger">Archiver le dossier</a>
+      {% endif %}
     </div>
-
-    <div class="row">
-        {# COLONNE DE GAUCHE : PROFIL ET INFORMATIONS CLÉS (4/12) #}
-        <div class="col-lg-4 col-md-12">
-            
-            {# CARTE DE PROFIL (Highlight) #}
-            <div class="card shadow-lg mb-4 border-bottom border-3 border-primary">
-                <div class="card-body p-4 text-center">
-                    {% if etudiant.photo_profil %}
-                        <img src="{{ etudiant.photo_profil.url }}" alt="Photo de profil" class="img-fluid rounded-circle mx-auto mb-3 border border-5 border-primary p-1" style="width: 150px; height: 150px; object-fit: cover;">
-                    {% else %}
-                        <img src="{% static 'images/default_profile.png' %}" alt="Pas de photo" class="img-fluid rounded-circle mx-auto mb-3 border border-5 border-secondary p-1" style="width: 150px; height: 150px; object-fit: cover;">
-                    {% endif %}
-                    
-                    <h4 class="fw-bolder mb-1 text-dark">{{ etudiant.prenom }} {{ etudiant.nom }}</h4>
-                    <p class="text-muted mb-3 small">Matricule: {{ etudiant.numero_matricule|default:"N/A" }}</p>
-                    
-                    <hr class="my-3">
-
-                    <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded mb-2">
-                        <span class="text-muted fw-bold">Classe:</span>
-                        <span class="fw-bolder text-primary">{{ etudiant.classe.nom_classe|default:"Non assigné" }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded">
-                        <span class="text-muted fw-bold">Année Inscription:</span>
-                        <span class="text-secondary">{{ etudiant.annee_scolaire_inscription.annee|default:"Non définie" }}</span>
-                    </div>
-
-                    {# Badge de statut avec couleur conditionnelle et animation #}
-                    <div class="mt-3">
-                        <span class="fw-bold me-2 text-dark">Statut:</span>
-                        <span class="badge rounded-pill p-2 fs-6 
-                            {% if etudiant.statut == 'Actif' %}bg-success{% elif etudiant.statut == 'Suspendu' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
-                            <i class="fas fa-circle me-1 animate__animated animate__flash animate__infinite"></i> {{ etudiant.statut }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            {# CARTE DES INFOS PARENTS #}
-            <div class="card shadow-sm mb-4 border-start border-3 border-primary">
-                <div class="card-header bg-primary text-white fw-bold py-3">
-                    <i class="fas fa-headset me-2"></i> Contact Parent / Tuteur
-                </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item px-0 d-flex justify-content-between">
-                            <span class="text-muted"><i class="fas fa-phone-alt fa-fw me-2 text-primary"></i> Téléphone:</span>
-                            <span class="fw-bold">{{ etudiant.contact_parent|default:"Non renseigné" }}</span>
-                        </li>
-                        <li class="list-group-item px-0 d-flex justify-content-between">
-                            <span class="text-muted"><i class="fas fa-envelope fa-fw me-2 text-primary"></i> Email:</span>
-                            <span class="fw-bold">{{ etudiant.email_parent|default:"Non renseigné" }}</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            {# CARTE DES DOCUMENTS D'INSCRIPTION #}
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light fw-bold">
-                    <i class="fas fa-folder-open me-2 text-info"></i> Documents d'Inscription
-                </div>
-                <ul class="list-group list-group-flush">
-                    {% if dossier_images %}
-                        {% for doc in dossier_images %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span class="text-dark">{{ doc.description|default:"Document sans description" }}</span>
-                                {% if doc.image %}
-                                    <a href="{{ doc.image.url }}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill"><i class="fas fa-eye me-1"></i> Voir</a>
-                                {% else %}
-                                    <span class="text-muted"><i class="fas fa-times-circle text-danger me-1"></i> Manquant</span>
-                                {% endif %}
-                            </li>
-                        {% endfor %}
-                    {% else %}
-                        <li class="list-group-item text-muted text-center py-3 bg-light">
-                            <i class="fas fa-info-circle me-1"></i> Aucun document téléversé.
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
+  </div>
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <section class="card shadow-sm mb-3">
+        <div class="card-body text-center">
+          {% if etudiant.photo_profil %}
+            <img src="{% url 'student_photo' etudiant.pk %}" alt="Photo de {{ etudiant.prenom }}" class="rounded-circle mb-3" style="width:140px;height:140px;object-fit:cover">
+          {% endif %}
+          <h2 class="h5">{{ etudiant.prenom }} {{ etudiant.nom }}</h2>
+          <p class="mb-1">Matricule : {{ etudiant.numero_matricule|default:"—" }}</p>
+          <p class="mb-1">Classe : {{ inscription_courante.classe.nom_classe|default:"Non assignée pour l'année active" }}</p>
+          <p class="mb-1">Année : {{ inscription_courante.annee_scolaire.annee|default:"Non inscrit pour l'année active" }}</p>
+          <p class="mb-0">Statut de l'inscription : {% if inscription_courante %}{{ inscription_courante.get_statut_display }}{% else %}Aucune inscription pour l'année active{% endif %}</p>
         </div>
-
-        {# COLONNE DE DROITE : NAVIGATION ET CONTENU DES ONGLETs (8/12) #}
-        <div class="col-lg-8 col-md-12">
-            <div class="card shadow-lg">
-                <div class="card-header p-0 bg-white">
-                    <ul class="nav nav-tabs card-header-tabs nav-fill" id="studentDetailTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active fw-bold text-primary" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes" type="button" role="tab" aria-controls="notes" aria-selected="true"><i class="fas fa-graduation-cap me-2"></i>Notes</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link fw-bold text-success" id="paiements-tab" data-bs-toggle="tab" data-bs-target="#paiements" type="button" role="tab" aria-controls="paiements" aria-selected="false"><i class="fas fa-money-check-alt me-2"></i>Paiements</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link fw-bold text-warning" id="presences-tab" data-bs-toggle="tab" data-bs-target="#presences" type="button" role="tab" aria-controls="presences" aria-selected="false"><i class="fas fa-calendar-check me-2"></i>Présences</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link fw-bold text-info" id="certificats-tab" data-bs-toggle="tab" data-bs-target="#certificats" type="button" role="tab" aria-controls="certificats" aria-selected="false"><i class="fas fa-file-signature me-2"></i>Certificats</button>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="card-body">
-                    <div class="tab-content" id="myTabContent">
-                        
-                        {# Onglet Notes #}
-                        <div class="tab-pane fade show active" id="notes" role="tabpanel" aria-labelledby="notes-tab">
-                            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                                <h5 class="fw-bold text-primary"><i class="fas fa-chart-line me-2"></i>Performance Récente</h5>
-                                <a href="{% url 'ajouter_note' etudiant.pk %}" class="btn btn-primary btn-lg shadow-sm"><i class="fas fa-plus-circle me-1"></i>Ajouter Note</a>
-                            </div>
-                            {% if notes %}
-                                <div class="table-responsive mb-4">
-                                    <table class="table table-striped table-hover table-sm align-middle">
-                                        <thead class="table-primary text-white">
-                                            <tr>
-                                                <th>Matière</th>
-                                                <th>Période</th>
-                                                <th>Type</th>
-                                                <th class="text-center">Note</th>
-                                                <th>Année</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for note in notes|slice:":10" %} {# Affiche seulement les 10 dernières #}
-                                                <tr>
-                                                    <td class="fw-bold">{{ note.matiere.nom|default:"N/A" }}</td>
-                                                    <td><span class="badge rounded-pill bg-secondary">{{ note.periode_evaluation|default:"N/A" }}</span></td>
-                                                    <td>{{ note.type_evaluation|default:"N/A" }}</td>
-                                                    <td class="fw-bolder text-center fs-5 text-{% if note.valeur >= 10 %}success{% else %}danger{% endif %}">{{ note.valeur|floatformat:2|default:"N/A" }} / 20</td>
-                                                    <td>{{ note.annee_scolaire.annee|default:"N/A" }}</td>
-                                                    <td>
-                                                        <a href="{% url 'modifier_note' note.pk %}" class="btn btn-sm btn-outline-warning me-1" data-bs-toggle="tooltip" title="Modifier la note"><i class="fas fa-edit"></i></a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                                
-                                <div class="card border-primary p-3 bg-light">
-                                    <h6 class="text-primary fw-bold mb-3"><i class="fas fa-print me-2"></i>Génération de Bulletins (Année Active)</h6>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <a href="{% url 'generer_bulletin_scolaire' etudiant.pk 'Trimestre 1' %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-file-pdf me-1"></i>Trimestre 1</a>
-                                        <a href="{% url 'generer_bulletin_scolaire' etudiant.pk 'Trimestre 2' %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-file-pdf me-1"></i>Trimestre 2</a>
-                                        <a href="{% url 'generer_bulletin_scolaire' etudiant.pk 'Trimestre 3' %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-file-pdf me-1"></i>Trimestre 3</a>
-                                        <a href="{% url 'generer_bulletin_scolaire' etudiant.pk 'Annuelle' %}" class="btn btn-primary btn-sm"><i class="fas fa-file-pdf me-1"></i>Bulletin Annuel</a>
-                                    </div>
-                                </div>
-                            {% else %}
-                                <div class="alert alert-info text-center py-4" role="alert">
-                                    <i class="fas fa-exclamation-circle me-1"></i> Aucune note enregistrée pour cet élève.
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        {# Onglet Paiements #}
-                        <div class="tab-pane fade" id="paiements" role="tabpanel" aria-labelledby="paiements-tab">
-                            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                                <h5 class="fw-bold text-success"><i class="fas fa-history me-2"></i>Historique des Paiements</h5>
-                                <a href="{% url 'ajouter_paiement' etudiant.pk %}" class="btn btn-success btn-lg shadow-sm"><i class="fas fa-plus-circle me-1"></i>Ajouter Paiement</a>
-                            </div>
-                            
-                            {# Résumé des totaux de paiement #}
-                            <div class="row row-cols-1 row-cols-md-3 g-3 mb-4 text-center">
-                                <div class="col">
-                                    <div class="card shadow-sm border-info border-3 p-3">
-                                        <small class="text-muted fw-bold">Total Dû</small>
-                                        <h4 class="fw-bold text-info mb-0">{{ total_du|floatformat:0|default:"0" }} FCFA</h4>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <div class="card shadow-sm border-success border-3 p-3">
-                                        <small class="text-muted fw-bold">Total Payé</small>
-                                        <h4 class="fw-bold text-success mb-0">{{ total_paye|floatformat:0|default:"0" }} FCFA</h4>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <div class="card shadow-sm border-{% if solde_restant > 0 %}danger{% else %}success{% endif %} border-3 p-3">
-                                        <small class="text-muted fw-bold">Solde Restant</small>
-                                        <h4 class="fw-bold text-{% if solde_restant > 0 %}danger{% else %}success{% endif %} mb-0">{{ solde_restant|floatformat:0|default:"0" }} FCFA</h4>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {% if paiements %}
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-hover table-sm align-middle">
-                                        <thead class="table-success text-white">
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Motif</th>
-                                                <th class="text-end">Montant Payé</th>
-                                                <th>Statut</th>
-                                                <th>Reçu N°</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for paiement in paiements|slice:":10" %}
-                                                <tr>
-                                                    <td>{{ paiement.date_paiement|date:"d M Y" }}</td>
-                                                    <td class="fw-bold">{{ paiement.motif_paiement|default:"N/A" }}</td>
-                                                    <td class="fw-bold text-end">{{ paiement.montant|floatformat:0|default:"0" }}</td>
-                                                    <td><span class="badge rounded-pill bg-{% if paiement.statut == 'Payé' %}success{% elif paiement.statut == 'Partiel' %}warning text-dark{% else %}danger{% endif %} p-2">{{ paiement.statut }}</span></td>
-                                                    <td><span class="badge bg-light text-dark border">{{ paiement.recu_numero|default:"N/A" }}</span></td>
-                                                    <td>
-                                                        <a href="{% url 'modifier_paiement' paiement.pk %}" class="btn btn-sm btn-outline-warning me-1" data-bs-toggle="tooltip" title="Modifier le paiement"><i class="fas fa-edit"></i></a>
-                                                        <a href="{% url 'generer_recu_paiement' paiement.id %}" 
-   class="btn btn-primary"
-   target="_blank">
-   Générer le reçu PDF
-</a>
-</a>
-
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            {% else %}
-                                <div class="alert alert-info text-center py-4" role="alert">
-                                    <i class="fas fa-exclamation-circle me-1"></i> Aucun paiement enregistré pour cet élève.
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        {# Onglet Présences #}
-                        <div class="tab-pane fade" id="presences" role="tabpanel" aria-labelledby="presences-tab">
-                            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                                <h5 class="fw-bold text-warning"><i class="fas fa-clipboard-list me-2"></i>Détails de Présence</h5>
-                                {% if etudiant.classe %}
-                                <a href="{% url 'marquer_presence_classe' etudiant.classe.pk %}" class="btn btn-warning btn-lg shadow-sm text-dark"><i class="fas fa-calendar-plus me-1"></i>Marquer la présence (Classe)</a>
-                                {% endif %}
-                            </div>
-                            
-                            {# Résumé des statuts de présence #}
-                            <div class="row row-cols-1 row-cols-md-4 g-3 mb-4 text-center">
-                                <div class="col">
-                                    <div class="card shadow-sm border-success border-3 p-3">
-                                        <small class="text-muted fw-bold">Présent</small>
-                                        <h4 class="fw-bold text-success mb-0">{{ total_jours_presents|default:0 }} Jours</h4>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <div class="card shadow-sm border-danger border-3 p-3">
-                                        <small class="text-muted fw-bold">Absent</small>
-                                        <h4 class="fw-bold text-danger mb-0">{{ total_jours_absents|default:0 }} Jours</h4>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <div class="card shadow-sm border-warning border-3 p-3">
-                                        <small class="text-muted fw-bold">Retard</small>
-                                        <h4 class="fw-bold text-warning mb-0">{{ total_jours_retard|default:0 }} Fois</h4>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <div class="card shadow-sm border-info border-3 p-3">
-                                        <small class="text-muted fw-bold">Excusé</small>
-                                        <h4 class="fw-bold text-info mb-0">{{ total_jours_excuses|default:0 }} Fois</h4>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {% if presences %}
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-hover table-sm align-middle">
-                                        <thead class="table-warning text-dark">
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Cours</th>
-                                                <th>Statut</th>
-                                                <th class="text-center">Justifié</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for presence in presences|slice:":10" %}
-                                                <tr>
-                                                    <td>{{ presence.date|date:"d M Y" }}</td>
-                                                    <td>{{ presence.matiere.nom|default:"Général" }}</td>
-                                                    <td><span class="badge rounded-pill bg-{% if presence.statut == 'Présent' %}success{% elif presence.statut == 'Absent' %}danger{% elif presence.statut == 'Retard' %}warning text-dark{% else %}info{% endif %} p-2">{{ presence.statut }}</span></td>
-                                                    <td class="text-center">
-                                                        {% if presence.justificatif_fourni %}
-                                                            <i class="fas fa-check-circle text-success fs-5" data-bs-toggle="tooltip" title="{{ presence.motif_absence_retard|default:'Justifié' }}"></i>
-                                                        {% else %}
-                                                            <i class="fas fa-times-circle text-danger fs-5" data-bs-toggle="tooltip" title="{{ presence.motif_absence_retard|default:'Non justifié' }}"></i>
-                                                        {% endif %}
-                                                    </td>
-                                                
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            {% else %}
-                                <div class="alert alert-info text-center py-4" role="alert">
-                                    <i class="fas fa-exclamation-circle me-1"></i> Aucune présence enregistrée pour cet élève.
-                                </div>
-                            {% endif %}
-                        </div>
-
-                     {# Onglet Certificats #}
-<div class="tab-pane fade" id="certificats" role="tabpanel" aria-labelledby="certificats-tab">
-    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-        <h5 class="fw-bold text-info">
-            <i class="fas fa-file-alt me-2"></i>Documents Officiels
-        </h5>
-
-        <div class="d-flex gap-2">
-            <!-- Bouton pour créer un certificat depuis l'interface -->
-            <a href="{% url 'creer_certificat_interface' %}?etudiant_id={{ etudiant.id }}" 
-               class="btn btn-primary btn-lg shadow-sm text-white">
-                <i class="fas fa-plus-circle me-2"></i>Créer un certificat
-            </a>
-
-            <!-- Bouton pour générer un certificat PDF -->
-            <a href="{% url 'generer_certificat_frequentation' etudiant.pk %}" 
-               class="btn btn-info btn-lg shadow-sm text-white">
-                <i class="fas fa-file-pdf me-2"></i>Générer Certificat PDF
-            </a>
+      </section>
+      <section class="card shadow-sm mb-3">
+        <div class="card-header">Contact parent ou tuteur</div>
+        <div class="card-body">
+          <p class="mb-1">Téléphone : {{ etudiant.contact_parent|default:"—" }}</p>
+          <p class="mb-0">Courriel : {{ etudiant.email_parent|default:"—" }}</p>
         </div>
-    </div>
-
-    <h6 class="fw-bold mb-3 text-dark">
-        <i class="fas fa-clipboard-list me-2"></i>Historique des Certificats délivrés :
-    </h6>
-
-    {% if etudiant.certificatfrequentation_set.all %}
-        <ul class="list-group list-group-flush border rounded shadow-sm">
-            {% for cert in etudiant.certificatfrequentation_set.all %}
-                <li class="list-group-item d-flex justify-content-between align-items-center {% if forloop.last %}rounded-bottom{% endif %}">
-                    <div class="fw-bold text-dark">
-                        <i class="fas fa-calendar-check me-2 text-info"></i> 
-                        Certificat N° {{ cert.numero_certificat|default:'N/A' }} — 
-                        {{ cert.annee_scolaire.annee|default:"Année inconnue" }}
-                    </div>
-
-                    {% if cert.fichier_pdf %}
-                        <a href="{{ cert.fichier_pdf.url }}" 
-                           target="_blank" 
-                           class="btn btn-sm btn-success rounded-pill" 
-                           download>
-                            <i class="fas fa-download me-1"></i>Télécharger
-                        </a>
-                    {% else %}
-                        <span class="text-muted">
-                            <i class="fas fa-exclamation-triangle me-1 text-warning"></i> Fichier non archivé
-                        </span>
-                    {% endif %}
-                </li>
+      </section>
+      {% if can_view_academics %}
+        <section class="card shadow-sm mb-3">
+          <div class="card-header">Documents d'inscription</div>
+          <ul class="list-group list-group-flush">
+            {% for doc in dossier_images %}
+              <li class="list-group-item d-flex justify-content-between">
+                <span>{{ doc.description|default:"Document" }}</span>
+                {% if doc.image %}<a href="{% url 'enrollment_document' doc.pk %}" target="_blank">Voir</a>{% endif %}
+              </li>
+            {% empty %}
+              <li class="list-group-item text-muted">Aucun document.</li>
             {% endfor %}
-        </ul>
-    {% else %}
-        <div class="alert alert-info text-center py-4" role="alert">
-            <i class="fas fa-exclamation-circle me-1"></i> Aucun certificat généré pour cet élève.
-        </div>
-    {% endif %}
-</div>
-
-    {# Modale de confirmation de suppression (Ajout du style Bootstrap moderne) #}
-    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-danger border-3 shadow-lg">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="confirmDeleteModalLabel"><i class="fas fa-exclamation-triangle me-2"></i> Confirmer la Suppression Définitive</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="fs-5 fw-bold text-dark">Êtes-vous sûr de vouloir supprimer l'élève {{ etudiant.prenom }} {{ etudiant.nom }} ?</p>
-                    <p class="text-danger fw-bold">ATTENTION : Cette action est IRREVERSIBLE et entraînera la perte de TOUTES les données (notes, paiements, présences) associées.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <form action="{% url 'supprimer_etudiant' etudiant.pk %}" method="post" style="display: inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger btn-lg"><i class="fas fa-trash-alt me-2"></i>Supprimer Définitivement</button>
-                    </form>
-                </div>
-            </div>
-        </div>
+          </ul>
+        </section>
+      {% endif %}
     </div>
-
-{% endblock %}
-
-{% block extra_js %}
-{# Script d'initialisation des tooltips Bootstrap #}
-<script>
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
-    })
-</script>
+    <div class="col-lg-8">
+      {% if can_view_finances %}
+        <section class="card shadow-sm mb-4">
+          <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <h2 class="h5 mb-0">Frais et paiements — {{ annee_active.annee|default:"Aucune année active" }}</h2>
+            {% if inscription_active %}
+              <div>
+                <a href="{% url 'creer_creance_scolaire' etudiant.pk %}" class="btn btn-sm btn-outline-primary">Ajouter un frais</a>
+                <a href="{% url 'ajouter_paiement' etudiant.pk %}" class="btn btn-sm btn-success">Enregistrer un paiement</a>
+              </div>
+            {% endif %}
+          </div>
+          <div class="card-body">
+            <div class="row g-2 mb-3">
+              <div class="col-md-4"><strong>Dû :</strong> {{ total_du|floatformat:0 }} FCFA</div>
+              <div class="col-md-4"><strong>Encaissé :</strong> {{ total_paye|floatformat:0 }} FCFA</div>
+              <div class="col-md-4"><strong>Restant :</strong> {{ solde_restant|floatformat:0 }} FCFA</div>
+            </div>
+            <h3 class="h6">Frais scolaires</h3>
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead><tr><th>Motif</th><th>Dû</th><th>Encaissé</th><th>Restant</th><th>État</th><th></th></tr></thead>
+                <tbody>
+                  {% for frais in creances %}
+                    <tr>
+                      <td>{{ frais.motif }}{% if frais.libelle %} — {{ frais.libelle }}{% endif %}</td>
+                      <td>{{ frais.montant_du|floatformat:0 }}</td>
+                      <td>{{ frais.montant_paye|floatformat:0 }}</td>
+                      <td>{{ frais.solde_restant|floatformat:0 }}</td>
+                      <td>{{ frais.statut }}{% if frais.trop_percu %}<br><span class="badge bg-danger">Trop-perçu : {{ frais.trop_percu|floatformat:0 }} FCFA</span>{% endif %}</td>
+                      <td><a href="{% url 'modifier_creance_scolaire' frais.pk %}">Modifier</a></td>
+                    </tr>
+                  {% empty %}
+                    <tr><td colspan="6">Aucun frais enregistré pour cette année.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <h3 class="h6 mt-4">Encaissements</h3>
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead><tr><th>Date</th><th>Motif</th><th>Montant</th><th>Reçu</th><th></th></tr></thead>
+                <tbody>
+                  {% for paiement in paiements %}
+                    <tr>
+                      <td>{{ paiement.date_paiement|date:"d/m/Y" }}</td>
+                      <td>{{ paiement.motif_paiement }}</td>
+                      <td>{{ paiement.montant|floatformat:0 }} FCFA</td>
+                      <td>{{ paiement.recu_numero|default:"—" }}</td>
+                      <td>
+                        <a href="{% url 'generer_recu_paiement' paiement.pk %}">Reçu</a> ·
+                        <a href="{% url 'modifier_paiement' paiement.pk %}">Corriger</a> ·
+                        <a href="{% url 'supprimer_paiement' paiement.pk %}">Annuler</a>
+                      </td>
+                    </tr>
+                  {% empty %}
+                    <tr><td colspan="5">Aucun encaissement enregistré.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% if paiements_annules %}
+              <h3 class="h6 mt-4">Paiements annulés</h3>
+              <ul class="small text-muted">
+                {% for paiement in paiements_annules %}
+                  <li>N°{{ paiement.pk }} — {{ paiement.montant|floatformat:0 }} FCFA, le {{ paiement.date_paiement|date:"d/m/Y" }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        </section>
+      {% endif %}
+      {% if can_view_academics %}
+        {% if inscription_active and inscription_active.classe %}
+          <nav class="d-flex flex-wrap gap-2 mb-4" aria-label="Documents et suivi scolaire">
+            <a class="btn btn-outline-primary" href="{% url 'carte_scolaire_html' etudiant.pk %}">Carte scolaire</a>
+            <a class="btn btn-outline-primary" href="{% url 'carte_scolaire_pdf' etudiant.pk %}">Carte PDF</a>
+            <a class="btn btn-outline-secondary" href="{% url 'creer_certificat_interface' %}?etudiant_id={{ etudiant.pk }}">Certificat de fréquentation</a>
+            {% if user.is_superuser or user.profile.role == 'school_admin' or user.profile.role == 'director' %}
+              <a class="btn btn-outline-secondary" href="{% url 'generer_bulletin_scolaire' etudiant.pk 'Trimestre 1' %}">Aperçu du bulletin T1</a>
+              <a class="btn btn-outline-secondary" href="{% url 'generer_bulletin_scolaire' etudiant.pk 'Trimestre 2' %}">Aperçu du bulletin T2</a>
+              <a class="btn btn-outline-secondary" href="{% url 'generer_bulletin_scolaire' etudiant.pk 'Trimestre 3' %}">Aperçu du bulletin T3</a>
+              <a class="btn btn-outline-secondary" href="{% url 'generer_bulletin_scolaire' etudiant.pk 'Annuelle' %}">Aperçu du bulletin annuel</a>
+              <a class="btn btn-outline-secondary" href="{% url 'ajouter_note' etudiant.pk %}">Ajouter une note</a>
+              <a class="btn btn-outline-secondary" href="{% url 'suivi_presence_eleve' etudiant.pk %}">Suivi des présences</a>
+            {% endif %}
+          </nav>
+        {% endif %}
+        <section class="card shadow-sm mb-4">
+          <div class="card-header"><h2 class="h5 mb-0">Historique des classes</h2></div>
+          <div class="card-body table-responsive">
+            <table class="table table-sm">
+              <thead><tr><th>Année</th><th>Classe</th><th>Du</th><th>Jusqu'au (exclu)</th><th>Origine</th><th>Créée par</th><th>Terminée par</th></tr></thead>
+              <tbody>
+                {% for affectation in affectations_classe %}
+                  <tr>
+                    <td>{{ affectation.inscription.annee_scolaire.annee }}</td>
+                    <td>{{ affectation.classe.nom_classe }}</td>
+                    <td>{{ affectation.date_debut|date:"d/m/Y" }}</td>
+                    <td>{% if affectation.date_fin %}{{ affectation.date_fin|date:"d/m/Y" }}{% else %}En cours{% endif %}</td>
+                    <td>{{ affectation.get_origine_display }}</td>
+                    <td>{{ affectation.cree_par|default:"—" }}</td>
+                    <td>{{ affectation.termine_par|default:"—" }}</td>
+                  </tr>
+                {% empty %}
+                  <tr><td colspan="7">Aucune affectation datée enregistrée.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section class="card shadow-sm mb-4">
+          <div class="card-header"><h2 class="h5 mb-0">Notes de l'année active</h2></div>
+          <div class="card-body table-responsive">
+            <table class="table table-sm">
+              <thead><tr><th>Matière</th><th>Période</th><th>Note</th></tr></thead>
+              <tbody>
+                {% for note in notes %}
+                  <tr><td>{{ note.matiere.nom }}</td><td>{{ note.periode_evaluation }}</td><td>{{ note.valeur }}/20</td></tr>
+                {% empty %}
+                  <tr><td colspan="3">Aucune note.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section class="card shadow-sm mb-4">
+          <div class="card-header"><h2 class="h5 mb-0">Présences</h2></div>
+          <div class="card-body">
+            <p>Présent : {{ total_jours_presents }} · Absences au total : {{ total_jours_absents }} ({{ total_jours_absents_statut_absent }} « Absent », {{ total_jours_excuses }} « Excusé ») · Retard : {{ total_jours_retard }}</p>
+          </div>
+        </section>
+        {% if inscription_active and inscription_active.classe %}
+          <section class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h2 class="h5 mb-0">Documents administratifs</h2>
+              {% if user.is_superuser or user.profile.role == 'school_admin' or user.profile.role == 'director' %}
+                <a href="{% url 'modeles_documents' %}" class="btn btn-sm btn-outline-secondary">Configurer les modèles</a>
+              {% endif %}
+            </div>
+            <div class="card-body d-flex flex-wrap gap-2">
+              <form method="post" action="{% url 'generer_attestation_scolarite' etudiant.pk %}">
+                {% csrf_token %}<button type="submit" class="btn btn-outline-primary">Émettre une attestation de scolarité</button>
+              </form>
+              <form method="post" action="{% url 'generer_certificat_inscription' etudiant.pk %}">
+                {% csrf_token %}<button type="submit" class="btn btn-outline-primary">Émettre un certificat d'inscription</button>
+              </form>
+              {% for modele in modeles_documents_libres %}
+                <form method="post" action="{% url 'generer_document_personnalise' etudiant.pk modele.pk %}">
+                  {% csrf_token %}<button type="submit" class="btn btn-outline-primary">Émettre : {{ modele.titre }}</button>
+                </form>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+        <section class="card shadow-sm mb-4">
+          <div class="card-header"><h2 class="h5 mb-0">Documents émis</h2></div>
+          <ul class="list-group list-group-flush">
+            {% for document in documents_emis %}
+              <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+                <span>{{ document.get_type_document_display }}{% if document.type_document == 'autre' %} — {{ document.modele_snapshot.titre }}{% endif %} · {{ document.annee_scolaire.annee }} · n° {{ document.numero_document }}{% if document.statut == 'annule' %} <span class="badge bg-secondary">Annulé</span>{% endif %}</span>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                  {% if document.fichier_pdf %}<a href="{% url 'issued_document_file' document.pk %}" class="btn btn-sm btn-outline-secondary">Télécharger</a>{% endif %}
+                  {% if can_archive and document.statut == 'valide' %}
+                    <form method="post" action="{% url 'annuler_document_emis' document.pk %}" class="d-flex flex-wrap align-items-center gap-2">
+                      {% csrf_token %}
+                      <label for="motif-annulation-{{ document.pk }}" class="visually-hidden">Motif d'annulation du document {{ document.numero_document }}</label>
+                      <input id="motif-annulation-{{ document.pk }}" name="motif" type="text" class="form-control form-control-sm" placeholder="Motif d'annulation" required maxlength="500">
+                      <button type="submit" class="btn btn-sm btn-outline-danger">Annuler</button>
+                    </form>
+                  {% endif %}
+                </div>
+              </li>
+            {% empty %}
+              <li class="list-group-item text-muted">Aucun document émis.</li>
+            {% endfor %}
+          </ul>
+        </section>
+        <section class="card shadow-sm mb-4">
+          <div class="card-header"><h2 class="h5 mb-0">Certificats</h2></div>
+          <ul class="list-group list-group-flush">
+            {% for cert in etudiant.certificatfrequentation_set.all %}
+              <li class="list-group-item d-flex justify-content-between">
+                <span>{{ cert.numero_certificat }} — {{ cert.annee_scolaire.annee }}</span>
+                {% if cert.fichier_pdf %}<a href="{% url 'certificate_file' cert.pk %}">Télécharger</a>{% endif %}
+              </li>
+            {% empty %}
+              <li class="list-group-item">Aucun certificat.</li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+    </div>
+  </div>
+</div>
 {% endblock %}

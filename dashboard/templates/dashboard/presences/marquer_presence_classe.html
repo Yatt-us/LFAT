@@ -1,213 +1,97 @@
-{% extends 'dashboard/base.html' %} {# Assurez-vous que ce chemin est correct pour votre template de base #}
-{% load crispy_forms_tags %} {# IMPORTANT : Assurez-vous que crispy_forms est installé et configuré dans settings.py #}
+{% extends 'dashboard/base.html' %}
 
-{% block title %}Marquer les Présences pour la Classe {{ classe.nom_classe }}{% endblock %}
+{% block title %}Appel de {{ classe.nom_classe }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Marquer les Présences pour la Classe : <span class="text-primary">{{ classe.nom_classe }}</span></h2>
-        <a href="{% url 'liste_classes' %}" class="btn btn-secondary">Retour aux Classes</a>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h2 class="mb-0">Appel de {{ classe.nom_classe }}</h2>
+        <a href="{% url 'liste_classes' %}" class="btn btn-outline-secondary">Retour aux classes</a>
     </div>
+    <p class="text-muted">Année {{ annee_active.annee }} · {{ date_aujourdhui|date:"d/m/Y" }}</p>
+    <p class="alert alert-info">Choisissez un statut pour chaque élève effectivement contrôlé. « Non renseigné » ne crée aucune présence. Le statut « Excusé » représente une absence excusée. Une pièce fournie ne signifie pas que le motif a été validé.</p>
 
-    <p class="text-muted">Année Scolaire : {{ annee_active.annee }} | Date : {{ date_aujourdhui|date:"d M Y" }}</p>
-
-    {# --- NOUVEAU : Filtre par classe --- #}
-    <div class="mb-4 p-3 border rounded bg-light">
-        <label for="classFilter" class="form-label fw-bold me-2">Changer de Classe :</label>
-        <select id="classFilter" class="form-select w-auto d-inline-block">
+    <div class="mb-4">
+        <label for="classFilter" class="form-label fw-bold">Changer de classe</label>
+        <select id="classFilter" class="form-select" style="max-width: 22rem">
             {% for c in toutes_les_classes %}
-                <option value="{{ c.id }}" {% if c.id == classe.id %}selected{% endif %}>
-                    {{ c.nom_classe }}
-                </option>
+                <option value="{{ c.pk }}" {% if c.pk == classe.pk %}selected{% endif %}>{{ c.nom_classe }}</option>
             {% endfor %}
         </select>
     </div>
-    {# --- FIN NOUVEAU FILTRE --- #}
-
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
 
     <form method="post">
         {% csrf_token %}
-        
-        {# Ceci est important pour les formsets : le champ de gestion total #}
         {{ formset.management_form }}
-
+        {% if formset.non_form_errors %}<div class="alert alert-danger">{{ formset.non_form_errors }}</div>{% endif %}
         <div class="table-responsive">
-            <table class="table table-hover table-striped">
+            <table class="table table-hover table-striped align-middle">
                 <thead class="table-dark">
                     <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Étudiant</th> {# Ce sera le nom et prénom #}
-                        <th scope="col">Présent</th>
-                        <th scope="col">Statut Détail (Si Absent/Retard)</th>
-                        <th scope="col">Matière</th>
-                        <th scope="col">Heure Début</th>
-                        <th scope="col">Heure Fin</th>
-                        <th scope="col">Motif Absence/Retard</th>
-                        <th scope="col">Justificatif Fourni</th>
-                        <th scope="col" class="d-none">Statut Interne</th>
-                        <th scope="col" class="d-none">PK</th>
+                        <th>Élève</th>
+                        <th>Pointage</th>
+                        <th>Matière</th>
+                        <th>Début</th>
+                        <th>Fin</th>
+                        <th>Motif</th>
+                        <th>Pièce fournie</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for form in formset %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
+                    <tr class="presence-row">
                         <td>
-                            {# Affichage du nom et prénom de l'étudiant #}
                             <strong>{{ form.initial.etudiant_obj.prenom }} {{ form.initial.etudiant_obj.nom }}</strong>
-                            
-                            {# Champs cachés, ne pas supprimer #}
-                            {{ form.etudiant }} {# Champ caché de l'ID de l'étudiant #}
-                            {{ form.classe }} {# Champ caché de l'ID de la classe #}
-                            {{ form.date }} {# Champ caché de la date #}
-                            {{ form.annee_scolaire }} {# Champ caché de l'année scolaire #}
-                            {{ form.id }} {# Champ caché pour l'ID de l'instance de Presence existante #}
+                            {{ form.etudiant }}
+                            {{ form.etudiant.errors }}
                         </td>
-                        <td>
-                            {# Checkbox "Présent" #}
-                            {{ form.est_present }}
-                        </td>
-                        <td>
-                            {# Select pour Statut Détail (Absent/Retard/Excusé) #}
-                            {{ form.statut_detail }}
-                        </td>
-                        <td>
-                            {# Matière #}
-                            {{ form.matiere }}
-                        </td>
-                        <td>
-                            {# Heure Début #}
-                            {{ form.heure_debut_cours }}
-                        </td>
-                        <td>
-                            {# Heure Fin #}
-                            {{ form.heure_fin_cours }}
-                        </td>
-                        <td>
-                            {# Motif #}
-                            {{ form.motif_absence_retard }}
-                        </td>
-                        <td>
-                            {# Justificatif #}
-                            {{ form.justificatif_fourni }}
-                        </td>
-                        <td class="d-none">
-                            {# Champ caché pour le statut du modèle (sera mis à jour par JS) #}
-                            {{ form.statut }}
-                        </td>
-                        <td class="d-none">
-                            {# Champ caché pour l'ID de l'instance (si elle existe) #}
-                            {# C'est le même que form.id ci-dessus, mais peut être utile pour le débogage #}
-                            {% if form.instance.pk %}{{ form.instance.pk }}{% endif %}
-                        </td>
+                        <td>{{ form.statut_saisie }}{{ form.statut_saisie.errors }}</td>
+                        <td>{{ form.matiere }}{{ form.matiere.errors }}</td>
+                        <td>{{ form.heure_debut_cours }}{{ form.heure_debut_cours.errors }}</td>
+                        <td>{{ form.heure_fin_cours }}{{ form.heure_fin_cours.errors }}</td>
+                        <td>{{ form.motif_absence_retard }}{{ form.motif_absence_retard.errors }}</td>
+                        <td>{{ form.justificatif_fourni }}{{ form.justificatif_fourni.errors }}</td>
                     </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center text-muted">Aucun élève inscrit et actif dans cette classe.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-
-        <button type="submit" class="btn btn-primary mt-3">Enregistrer les Présences</button>
+        <button type="submit" class="btn btn-primary" {% if not formset.forms %}disabled{% endif %}>Enregistrer les pointages</button>
     </form>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // --- SCRIPT POUR LE FILTRE DE CLASSE ---
-    const classFilterSelect = document.getElementById('classFilter');
-    if (classFilterSelect) {
-        classFilterSelect.addEventListener('change', function() {
-            const selectedClassId = this.value;
-            if (selectedClassId) {
-                // Redirige vers l'URL de marquage de présence pour la classe sélectionnée
-                // Assurez-vous que votre URL Django pour marquer_presence_classe est comme ceci:
-                // path('presences/classe/<int:classe_id>/marquer/', views.marquer_presence_classe, name='marquer_presence_classe'),
-                window.location.href = "{% url 'marquer_presence_classe' 0 %}".replace('/0/', '/' + selectedClassId + '/');
-            }
-        });
-    }
-    // --- FIN SCRIPT FILTRE ---
-
-    const formRows = document.querySelectorAll('tbody tr');
-
-    formRows.forEach(row => {
-        const estPresentCheckbox = row.querySelector('input[type="checkbox"][name$="-est_present"]');
-        const statutDetailSelect = row.querySelector('select[name$="-statut_detail"]');
-        const statutHiddenInput = row.querySelector('input[type="hidden"][name$="-statut"]');
-        const matiereSelect = row.querySelector('select[name$="-matiere"]');
-        const heureDebutInput = row.querySelector('input[type="time"][name$="-heure_debut_cours"]');
-        const heureFinInput = row.querySelector('input[type="time"][name$="-heure_fin_cours"]');
-        const motifInput = row.querySelector('input[type="text"][name$="-motif_absence_retard"]');
-        const justificatifCheckbox = row.querySelector('input[type="checkbox"][name$="-justificatif_fourni"]');
-
-        // Fonction pour mettre à jour la visibilité et les valeurs
-        function updateFieldsVisibility() {
-            const isPresent = estPresentCheckbox.checked;
-
-            if (isPresent) {
-                // Si l'élève est présent, désactiver et vider les champs d'absence/retard
-                statutDetailSelect.value = ''; // Réinitialise la sélection
-                statutDetailSelect.setAttribute('disabled', 'disabled');
-                
-                matiereSelect.value = ''; // Réinitialise la sélection
-                matiereSelect.setAttribute('disabled', 'disabled');
-
-                heureDebutInput.value = '';
-                heureDebutInput.setAttribute('disabled', 'disabled');
-
-                heureFinInput.value = '';
-                heureFinInput.setAttribute('disabled', 'disabled');
-
-                motifInput.value = '';
-                motifInput.setAttribute('disabled', 'disabled');
-
-                justificatifCheckbox.checked = false;
-                justificatifCheckbox.setAttribute('disabled', 'disabled');
-
-                // Mettre à jour le champ caché 'statut' du modèle à 'Présent'
-                if (statutHiddenInput) {
-                    statutHiddenInput.value = 'Présent';
+document.addEventListener('DOMContentLoaded', () => {
+    const classFilter = document.getElementById('classFilter');
+    classFilter?.addEventListener('change', () => {
+        const url = "{% url 'marquer_presence_classe' 0 %}";
+        window.location.href = url.replace('/0/', '/' + encodeURIComponent(classFilter.value) + '/');
+    });
+    document.querySelectorAll('.presence-row').forEach(row => {
+        const status = row.querySelector('select[name$="-statut_saisie"]');
+        const details = [
+            row.querySelector('select[name$="-matiere"]'),
+            row.querySelector('input[name$="-heure_debut_cours"]'),
+            row.querySelector('input[name$="-heure_fin_cours"]'),
+            row.querySelector('input[name$="-motif_absence_retard"]'),
+            row.querySelector('input[name$="-justificatif_fourni"]'),
+        ].filter(Boolean);
+        const update = (clear) => {
+            const enabled = status.value !== '' && status.value !== 'Présent';
+            details.forEach(field => {
+                field.disabled = !enabled;
+                if (!enabled && clear) {
+                    if (field.type === 'checkbox') field.checked = false;
+                    else field.value = '';
                 }
-
-            } else {
-                // Si l'élève est absent/retard, activer les champs
-                statutDetailSelect.removeAttribute('disabled');
-                matiereSelect.removeAttribute('disabled');
-                heureDebutInput.removeAttribute('disabled');
-                heureFinInput.removeAttribute('disabled');
-                motifInput.removeAttribute('disabled');
-                justificatifCheckbox.removeAttribute('disabled');
-
-                // Mettre à jour le champ caché 'statut' en fonction du statut_detail
-                if (statutHiddenInput) {
-                    statutHiddenInput.value = statutDetailSelect.value || 'Absent'; // Par défaut 'Absent' si rien n'est choisi
-                }
-            }
-        }
-
-        // Écouteur d'événement sur la checkbox "Présent"
-        estPresentCheckbox.addEventListener('change', updateFieldsVisibility);
-
-        // Écouteur d'événement sur le select "statut_detail" pour mettre à jour le statut caché
-        statutDetailSelect.addEventListener('change', function() {
-            if (statutHiddenInput) {
-                statutHiddenInput.value = statutDetailSelect.value;
-            }
-        });
-
-        // Appeler la fonction une fois au chargement de la page pour initialiser l'état
-        updateFieldsVisibility();
+            });
+        };
+        status.addEventListener('change', () => update(true));
+        update(false);
     });
 });
 </script>

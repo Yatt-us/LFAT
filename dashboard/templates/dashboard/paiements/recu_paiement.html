@@ -184,7 +184,7 @@
 <body>
     <div class="recu">
         <div class="header">
-            <img src="{{ ecole.logo.url }}" alt="Logo de l'école" class="logo">
+            {% if logo_url %}<img src="{{ logo_url }}" alt="Logo de l'école" class="logo">{% endif %}
             <div class="infos">
                 <h2>{{ ecole.nom_etablissement }}</h2>
                 <p>{{ ecole.adresse_etablissement }}</p>
@@ -199,7 +199,7 @@
             <h4>Information de l'Élève</h4>
             <div class="details-grid">
                 <div>Nom & Prénom: <span>{{ etudiant.nom }} {{ etudiant.prenom }}</span></div>
-                <div>Classe: <span>{{ etudiant.classe.nom_classe|default:"Non assigné" }}</span></div>
+                <div>Classe de l’année scolaire {{ paiement.annee_scolaire.annee }} : <span>{{ inscription_paiement.classe.nom_classe|default:"Non attribuée" }}</span></div>
             </div>
         </div>
 
@@ -225,8 +225,8 @@
                     <td>{{ paiement.mode_paiement|default:"Espèces" }}</td>
                 </tr>
                 <tr>
-                    <td>Statut :</td>
-                    <td><strong style="color: var(--secondary-color);">{{ paiement.statut|upper }}</strong></td>
+                    <td>Référence :</td>
+                    <td>{{ paiement.recu_numero|default:"—" }}</td>
                 </tr>
             </tbody>
         </table>
@@ -235,11 +235,11 @@
         <div class="financial-summary">
             <div style="width: 100%; display: flex; justify-content: space-between;">
                 <div>
-                    <div class="label">Total Global Dû:</div>
-                    <div class="amount-value">{{ paiement.montant_du|floatformat:0|default:"0" }} FCFA</div>
+                    <div class="label">Frais concerné :</div>
+                    <div class="amount-value">{{ paiement.motif_paiement }}</div>
                 </div>
                 <div>
-                    <div class="label">Montant Payé:</div>
+                    <div class="label">Montant reçu :</div>
                     <div class="amount-value paid">{{ paiement.montant|floatformat:0|default:"0" }} FCFA</div>
                 </div>
             </div>

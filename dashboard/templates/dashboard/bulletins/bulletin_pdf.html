@@ -23,7 +23,7 @@
 <div class="container">
     <div class="header">
         {% if ecole.logo %}
-            <img src="{{ ecole.logo.url }}" alt="Logo École">
+            <img src="{% url 'school_logo' ecole.pk %}" alt="Logo École">
         {% endif %}
         <h3>RÉPUBLIQUE DU MALI</h3>
         <p>Un Peuple – Un But – Une Foi</p>
@@ -35,7 +35,7 @@
 
     <div class="info-eleve">
         <p><strong>Nom et prénom :</strong> {{ etudiant.nom }} {{ etudiant.prenom }}</p>
-        <p><strong>Classe :</strong> {{ etudiant.classe.nom_classe }}</p>
+        <p><strong>Classe :</strong> {% if inscription.annee_scolaire_id == annee_scolaire.id %}{{ inscription.classe.nom_classe|default:"Non attribuée" }}{% else %}Non disponible pour cette année{% endif %}</p>
         <p><strong>Année scolaire :</strong> {{ annee_scolaire.annee }}</p>
     </div>
 
@@ -84,7 +84,7 @@
         <div>
             <p><strong>Le Chef d’Établissement</strong></p>
             {% if ecole.signature_directeur %}
-                <img src="{{ ecole.signature_directeur.url }}" height="70" alt="Signature">
+                <img src="{% url 'school_asset' ecole.pk 'signature' %}" height="70" alt="Signature">
             {% endif %}
         </div>
     </div>

@@ -1,0 +1,100 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}{% if nouveau %}Créer un modèle{% else %}Modifier un modèle{% endif %}{% endblock %}
+{% block content %}
+<div class="container py-3">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% if nouveau %}Nouveau document administratif{% else %}{{ type_libelle }}{% endif %}</h1>
+      <p class="text-muted mb-0">
+        {% if plan_enregistre %}Plan enregistré pour votre école.{% else %}Plan par défaut à personnaliser et enregistrer.{% endif %}
+        Les changements s'appliqueront aux prochains documents émis.
+      </p>
+    </div>
+    <a href="{% url 'modeles_documents' %}" class="btn btn-outline-secondary">Tous les modèles</a>
+  </div>
+  <div class="row g-4">
+    <div class="col-xl-6">
+      <form method="post" class="card shadow-sm">
+        {% csrf_token %}
+        <div class="card-header"><h2 class="h5 mb-0">Contenu du plan</h2></div>
+        <div class="card-body">
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+          <div class="small text-muted mb-3">
+            <span class="fw-semibold">Variables disponibles :</span>
+            {% for variable in variables_disponibles %}
+              <code>{% templatetag openvariable %} {{ variable }} {% templatetag closevariable %}</code>{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </div>
+          <p class="small text-muted">Le logo, le cachet et la signature se chargent dans <a href="{% url 'ecole_settings' %}">les paramètres de l'école</a>.</p>
+          {% for field in form %}
+            {% if field.field.widget.input_type == 'checkbox' %}
+              <div class="form-check mb-3">
+                {{ field }}
+                <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+              </div>
+            {% else %}
+              <div class="mb-3">
+                <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+        <div class="card-footer d-flex flex-wrap gap-2">
+          <button type="submit" name="action" value="apercu" class="btn btn-outline-primary">Prévisualiser</button>
+          <button type="submit" name="action" value="enregistrer" class="btn btn-success">Enregistrer le plan</button>
+        </div>
+      </form>
+    </div>
+    <div class="col-xl-6">
+      <section class="card shadow-sm" aria-labelledby="preview-title">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h2 id="preview-title" class="h5 mb-0">Prévisualisation</h2>
+          <span class="badge bg-info text-dark">Données fictives</span>
+        </div>
+        <div class="card-body bg-light">
+          <div class="bg-white border p-4 p-md-5" style="min-height:580px">
+            {% if afficher_logo %}
+              <div class="text-end mb-3">
+                {% if ecole.logo %}<img src="{% url 'school_logo' ecole.pk %}" alt="Logo de l’école" style="max-width:90px;max-height:80px;object-fit:contain">
+                {% else %}<span class="text-muted small">Logo non renseigné dans les paramètres de l’école.</span>{% endif %}
+              </div>
+            {% endif %}
+            <div class="small text-center mb-4">{{ apercu.entete|linebreaksbr }}</div>
+            <h3 class="h5 text-center text-uppercase mb-5">{{ apercu.titre }}</h3>
+            <div class="mb-4" style="white-space:normal">{{ apercu.corps|linebreaksbr }}</div>
+            {% if type_document == 'bulletin' %}
+              <div class="table-responsive mb-4">
+                <table class="table table-sm table-bordered">
+                  <thead><tr><th>Matière</th><th>Note</th></tr></thead>
+                  <tbody><tr><td>Mathématiques (exemple)</td><td>15/20</td></tr><tr><td>Français (exemple)</td><td>14/20</td></tr></tbody>
+                </table>
+              </div>
+              <p class="small text-muted">Le tableau réel des notes et la moyenne sont calculés par l'application.</p>
+            {% endif %}
+            {% if apercu.mention %}<p class="mb-4">{{ apercu.mention|linebreaksbr }}</p>{% endif %}
+            {% if apercu.pied_de_page %}<p class="small mb-5">{{ apercu.pied_de_page|linebreaksbr }}</p>{% endif %}
+            <div class="text-end mt-5">
+              <p class="mb-2">{{ apercu.titre_signataire }}</p>
+              {% if afficher_signature %}
+                {% if ecole.signature_directeur %}<img src="{% url 'school_asset' ecole.pk 'signature' %}" alt="Signature de l’école" class="mb-2" style="max-width:110px;max-height:75px;object-fit:contain">
+                {% else %}<p class="small text-muted mb-2">Signature non renseignée.</p>{% endif %}
+              {% endif %}
+              {% if afficher_cachet %}
+                {% if ecole.cachet_admin %}<img src="{% url 'school_asset' ecole.pk 'cachet' %}" alt="Cachet de l’école" style="max-width:110px;max-height:75px;object-fit:contain">
+                {% else %}<p class="small text-muted">Cachet non renseigné.</p>{% endif %}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

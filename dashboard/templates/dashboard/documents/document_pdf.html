@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<style>
+@page { size: A4; margin: 20mm 18mm 18mm; }
+body { font-family: sans-serif; color: #17263a; font-size: 11pt; line-height: 1.45; }
+header { display: flex; align-items: center; gap: 16px; border-bottom: 2px solid #243f68; padding-bottom: 13px; margin-bottom: 24px; }
+.logo { max-width: 80px; max-height: 75px; object-fit: contain; }
+.institution { flex: 1; text-align: center; white-space: pre-line; font-size: 10pt; }
+h1 { font-size: 17pt; text-align: center; text-transform: uppercase; margin: 16px 0 24px; letter-spacing: .02em; }
+.body-text, .mention, .footer-text { white-space: pre-line; }
+.body-text { min-height: 130px; }
+.meta { margin: 20px 0; display: flex; justify-content: space-between; font-size: 9pt; color: #48566a; }
+table { border-collapse: collapse; width: 100%; margin: 20px 0; font-size: 10pt; }
+th, td { border: 1px solid #adbacb; padding: 7px 8px; }
+th { background: #e9eff7; text-align: left; }
+td.number, th.number { text-align: right; }
+.average { text-align: right; font-weight: bold; margin-top: 8px; }
+.mention { margin-top: 22px; font-size: 9pt; color: #3d4a5d; }
+.signoff { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 34px; min-height: 115px; }
+.verification { width: 120px; text-align: center; font-size: 7pt; color: #536174; }
+.verification img { width: 90px; height: 90px; }
+.authority { flex: 1; text-align: right; line-height: 1.3; }
+.authority-title { font-weight: bold; margin-bottom: 8px; }
+.stamps { display: flex; align-items: center; justify-content: flex-end; gap: 18px; height: 70px; }
+.authority-name { margin-top: 6px; }
+.stamps img { max-width: 100px; max-height: 70px; object-fit: contain; }
+footer { position: fixed; bottom: -8mm; left: 0; right: 0; border-top: 1px solid #cbd5e1; padding-top: 5px; text-align: center; font-size: 8pt; color: #526074; white-space: pre-line; }
+</style>
+</head>
+<body>
+<header>
+  {% if afficher_logo and logo_data %}<img class="logo" src="{{ logo_data }}" alt="Logo de l’établissement">{% endif %}
+  <div class="institution">{{ entete }}</div>
+</header>
+<h1>{{ titre }}</h1>
+<div class="meta"><span>N° {{ numero_document }}</span><span>Émis le {{ date_emission }}</span></div>
+{% if periode %}<p><strong>Période :</strong> {{ periode }}</p>{% endif %}
+<div class="body-text">{{ corps }}</div>
+{% if notes %}
+<table>
+<thead><tr><th>Matière</th><th class="number">Note / 20</th><th class="number">Coefficient</th></tr></thead>
+<tbody>
+{% for note in notes %}<tr><td>{{ note.matiere }}</td><td class="number">{{ note.valeur }}</td><td class="number">{{ note.coefficient }}</td></tr>{% endfor %}
+</tbody>
+</table>
+<div class="average">Moyenne générale : {{ moyenne }} / 20</div>
+{% endif %}
+{% if mention %}<div class="mention">{{ mention }}</div>{% endif %}
+<div class="signoff">
+  {% if qr_data %}<div class="verification"><img src="{{ qr_data }}" alt="Code de vérification"><div>Vérifier ce document</div></div>{% endif %}
+  <div class="authority"><div class="authority-title">{{ titre_signataire }}</div>
+    <div class="stamps">
+      {% if afficher_cachet and cachet_data %}<img src="{{ cachet_data }}" alt="Cachet">{% endif %}
+      {% if afficher_signature and signature_data %}<img src="{{ signature_data }}" alt="Signature">{% endif %}
+    </div>
+    {% if nom_signataire %}<div class="authority-name">{{ nom_signataire }}</div>{% endif %}
+  </div>
+</div>
+<footer>{{ pied_de_page }}</footer>
+</body>
+</html>

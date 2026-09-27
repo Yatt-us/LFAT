@@ -1,52 +1,14 @@
 {% extends 'dashboard/base.html' %}
-{% load static %}
-
-{% block title %}Confirmer la Suppression de Paiement{% endblock %}
-
+{% block title %}Annuler un paiement{% endblock %}
 {% block content %}
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Confirmer la Suppression du Paiement</h1>
-    </div>
-
-    {# Affichage des messages Django #}
-    {% if messages %}
-        <div class="mb-4">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Supprimer le paiement pour {{ etudiant.prenom }} {{ etudiant.nom }}</h6>
-        </div>
-        <div class="card-body">
-            <p class="lead text-danger">
-                Êtes-vous sûr de vouloir supprimer le paiement suivant :
-            </p>
-            <ul>
-                <li><strong>Élève :</strong> {{ etudiant.prenom }} {{ etudiant.nom }}</li>
-                <li><strong>Motif :</strong> {{ paiement.motif_paiement|default:"N/A" }}</li>
-                <li><strong>Montant Payé :</strong> {{ paiement.montant|floatformat:2|default:"N/A" }} FCFA</li>
-                <li><strong>Montant Dû (pour ce motif) :</strong> {{ paiement.montant_du|floatformat:2|default:"N/A" }} FCFA</li>
-                <li><strong>Date du Paiement :</strong> {{ paiement.date_paiement|date:"d M Y" }}</li>
-                <li><strong>Statut :</strong> {{ paiement.statut|default:"N/A" }}</li>
-                <li><strong>Numéro de Reçu :</strong> {{ paiement.recu_numero|default:"N/A" }}</li>
-            </ul>
-            <p class="text-muted">
-                Cette action est **IRRÉVERSIBLE** et cet enregistrement de paiement sera définitivement supprimé de l'historique financier de l'élève.
-            </p>
-
-            <form method="post" action="{% url 'supprimer_paiement' paiement.pk %}" class="mt-4">
-                {% csrf_token %} {# Très important pour la sécurité Django #}
-                <button type="submit" class="btn btn-danger me-2"><i class="fas fa-trash-alt me-1"></i>Oui, Supprimer le Paiement</button>
-                {# Le bouton d'annulation redirige vers la page de détails de l'élève #}
-                <a href="{% url 'detail_etudiant' etudiant.pk %}" class="btn btn-secondary"><i class="fas fa-arrow-left me-1"></i>Annuler et Retour</a>
-            </form>
-        </div>
-    </div>
+<div class="container my-4">
+  <h1 class="h3">Annuler le paiement n°{{ paiement.pk }}</h1>
+  <p>{{ paiement.etudiant.prenom }} {{ paiement.etudiant.nom }} — {{ paiement.montant|floatformat:0 }} FCFA — {{ paiement.date_paiement|date:"d/m/Y" }}</p>
+  <div class="alert alert-warning">L'annulation retire cette somme des totaux. Le paiement reste conservé dans l'historique.</div>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Confirmer l'annulation</button>
+    <a href="{% url 'detail_etudiant' paiement.etudiant.pk %}" class="btn btn-secondary">Retour</a>
+  </form>
+</div>
 {% endblock %}

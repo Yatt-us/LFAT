@@ -1,6 +1,8 @@
 {% extends 'dashboard/base.html' %}
+{% load static %}
 
 {% block title %}Liste des Classes{% endblock %}
+{% block extra_css %}<link href="{% static 'dashboard/css/legacy-lists.css' %}" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
@@ -10,9 +12,9 @@
     </a>
 </div>
 
-<div class="card shadow-sm p-3">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+<div class="card shadow-sm p-3 legacy-list-card">
+    <div class="table-responsive legacy-table-container">
+        <table class="table table-hover align-middle mb-0 legacy-card-table">
             <thead class="table-dark">
                 <tr>
                     <th>Nom de la Classe</th>
@@ -26,32 +28,32 @@
             <tbody>
                 {% for classe in classes %}
                     <tr>
-                        <td class="fw-bold">{{ classe.nom_classe }}</td>
-                        <td>
+                        <td data-label="Classe" class="fw-bold">{{ classe.nom_classe }}</td>
+                        <td data-label="Niveau">
                             <span class="badge bg-info text-dark">{{ classe.get_niveau_display }}</span>
                         </td>
-                        <td>{{ classe.serie|default:"N/A" }}</td>
-                        <td>{{ classe.enseignant_principal|default:"Non assigné" }}</td>
-                        <td>{{ classe.annee_scolaire.annee }}</td>
-                        <td class="text-center">
-                            <div class="btn-group" role="group">
-                                <a href="{% url 'modifier_classe' classe.pk %}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" title="Modifier">
-                                    <i class="fas fa-edit"></i>
+                        <td data-label="Série">{{ classe.serie|default:"N/A" }}</td>
+                        <td data-label="Enseignant principal">{{ classe.enseignant_principal|default:"Non assigné" }}</td>
+                        <td data-label="Année scolaire">{{ classe.annee_scolaire.annee }}</td>
+                        <td data-label="Actions" class="text-center">
+                            <div class="btn-group legacy-actions" role="group" aria-label="Actions pour {{ classe.nom_classe }}">
+                                <a href="{% url 'modifier_classe' classe.pk %}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" title="Modifier" aria-label="Modifier {{ classe.nom_classe }}">
+                                    <i class="fas fa-edit" aria-hidden="true"></i><span class="legacy-action-text">Modifier</span>
                                 </a>
-                                <a href="{% url 'supprimer_classe' classe.pk %}" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" title="Supprimer">
-                                    <i class="fas fa-trash-alt"></i>
+                                <a href="{% url 'supprimer_classe' classe.pk %}" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" title="Supprimer" aria-label="Supprimer {{ classe.nom_classe }}">
+                                    <i class="fas fa-trash-alt" aria-hidden="true"></i><span class="legacy-action-text">Supprimer</span>
                                 </a>
-                                <a href="{% url 'suivi_presence_classe' classe.pk %}" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Suivi Présence">
-                                    <i class="fas fa-calendar-check"></i>
+                                <a href="{% url 'suivi_presence_classe' classe.pk %}" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Suivi Présence" aria-label="Suivi des présences pour {{ classe.nom_classe }}">
+                                    <i class="fas fa-calendar-check" aria-hidden="true"></i><span class="legacy-action-text">Suivi</span>
                                 </a>
-                                <a href="{% url 'marquer_presence_classe' classe.pk %}" class="btn btn-success btn-sm" data-bs-toggle="tooltip" title="Marquer Présence">
-                                    <i class="fas fa-user-plus"></i>
+                                <a href="{% url 'marquer_presence_classe' classe.pk %}" class="btn btn-success btn-sm" data-bs-toggle="tooltip" title="Marquer Présence" aria-label="Marquer les présences pour {{ classe.nom_classe }}">
+                                    <i class="fas fa-user-plus" aria-hidden="true"></i><span class="legacy-action-text">Présences</span>
                                 </a>
                             </div>
                         </td>
                     </tr>
                 {% empty %}
-                    <tr>
+                    <tr class="legacy-empty-row">
                         <td colspan="6" class="text-center text-muted">Aucune classe enregistrée pour le moment.</td>
                     </tr>
                 {% endfor %}

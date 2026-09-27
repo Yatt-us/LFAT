@@ -1,0 +1,16 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Motif d’absence ou de retard{% endblock %}
+{% block content %}
+<div style="max-width: 42rem">
+  <h1 class="h3 mb-2">Motif d’absence ou de retard</h1>
+  <p class="text-muted">{{ pointage.inscription.etudiant }} · {{ pointage.seance.classe.nom_classe }} · {{ pointage.seance.date|date:"d/m/Y" }} · {{ pointage.get_statut_display }}</p>
+  <p class="alert alert-info">Le motif est enregistré en attente de décision. Il ne modifie pas le statut du pointage.</p>
+  <form method="post" class="card border-0 shadow-sm p-4">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+    <label for="{{ form.motif.id_for_label }}" class="form-label fw-semibold">{{ form.motif.label }}</label>
+    {{ form.motif }}{% if form.motif.errors %}<div class="text-danger small">{{ form.motif.errors }}</div>{% endif %}
+    <div class="d-flex gap-2 mt-3"><button type="submit" class="btn btn-primary">Enregistrer le motif</button><a class="btn btn-outline-secondary" href="{% url 'vie_scolaire:pointage_seance' pointage.seance_id %}">Retour</a></div>
+  </form>
+</div>
+{% endblock %}
